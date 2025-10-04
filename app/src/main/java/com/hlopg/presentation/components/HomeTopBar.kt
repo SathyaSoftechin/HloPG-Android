@@ -1,8 +1,18 @@
 package com.hlopg.presentation.components
 
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
+import androidx.compose.animation.with
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
@@ -23,6 +33,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import kotlinx.coroutines.delay
 
 @Composable
 fun HelloPGHeader(
@@ -32,6 +44,7 @@ fun HelloPGHeader(
     backgroundColor: Color = MaterialTheme.colorScheme.primary,
     onSearchQueryChange: (String) -> Unit = {},
     onNotificationClick: () -> Unit = {},
+    navController: NavController,
     modifier: Modifier = Modifier
 ) {
 
@@ -39,6 +52,7 @@ fun HelloPGHeader(
     Box(
         modifier = modifier
             .fillMaxWidth()
+            .clip(RoundedCornerShape(0.dp, 0.dp, 16.dp, 16.dp))
             .background(backgroundColor)
             .padding(20.dp)
     ) {
@@ -57,18 +71,15 @@ fun HelloPGHeader(
                 )
 
                 IconButton(
-                    onClick = onNotificationClick,
+                    onClick = { navController.navigate(Screen.Notifications.route) },
                     modifier = Modifier
                         .size(36.dp)
-                        .background(
-                            color = Color.White,
-                            shape = RoundedCornerShape(24.dp)
-                        )
+
                 ) {
                     Icon(
                         imageVector = Icons.Default.Notifications,
                         contentDescription = "Notifications",
-                        tint = Color.Black,
+                        tint = Color.White,
                         modifier = Modifier.size(28.dp)
                     )
                 }
@@ -112,16 +123,28 @@ fun HelloPGHeader(
     }
 }
 
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun SearchBar(
     query: String,
     onQueryChange: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    hints: List<String> = listOf("Search Location", "Search PG Name", "Search Area"),
+    hintDuration: Long = 3000L
 ) {
     var searchText by remember { mutableStateOf(query) }
+    var currentHintIndex by remember { mutableStateOf(0) }
 
     LaunchedEffect(query) {
         searchText = query
+    }
+
+    // Cycle through hints automatically
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(hintDuration)
+            currentHintIndex = (currentHintIndex + 1) % hints.size
+        }
     }
 
     Row(
@@ -157,11 +180,20 @@ fun SearchBar(
             decorationBox = { innerTextField ->
                 Box {
                     if (searchText.isEmpty()) {
-                        Text(
-                            text = "Search Location",
-                            color = Color.Gray.copy(alpha = 0.5f),
-                            fontSize = 16.sp
-                        )
+                        // Animated placeholder
+                        androidx.compose.animation.AnimatedContent(
+                            targetState = currentHintIndex,
+                            transitionSpec = {
+                            slideInVertically { height -> height } + fadeIn() togetherWith
+                                    slideOutVertically { height -> -height } + fadeOut()
+                        }
+                        ) { index ->
+                            Text(
+                                text = hints[index],
+                                color = Color.Gray,
+                                fontSize = 16.sp
+                            )
+                        }
                     }
                     innerTextField()
                 }
@@ -170,25 +202,3 @@ fun SearchBar(
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun PGFinderHeaderPreview() {
-    var searchQuery by remember { mutableStateOf("") }
-
-    MaterialTheme {
-        HelloPGHeader(
-            selectedLocation = "Hyderabad",
-            searchQuery = searchQuery,
-            onLocationClick = {
-                println("Location dropdown clicked")
-            },
-            onSearchQueryChange = { query ->
-                searchQuery = query
-                println("Search query: $query")
-            },
-            onNotificationClick = {
-                println("Notification clicked")
-            }
-        )
-    }
-}

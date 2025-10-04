@@ -49,7 +49,6 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.8.0")
 
 
-    implementation("com.google.accompanist:accompanist-systemuicontroller:0.35.2-beta")
 
     implementation(libs.androidx.security.crypto)
 
@@ -78,6 +77,9 @@ dependencies {
     implementation(libs.androidx.compose.runtime.livedata)
     implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.foundation)
+    implementation(libs.androidx.compose.animation)
+    implementation(libs.androidx.compose.foundation.layout)
+    implementation(libs.androidx.runtime)
 
     // Testing dependencies
     testImplementation(libs.junit)

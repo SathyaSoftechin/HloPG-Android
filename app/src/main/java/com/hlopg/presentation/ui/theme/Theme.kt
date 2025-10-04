@@ -1,5 +1,6 @@
 package com.hlopg.presentation.ui.theme
 
+import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
@@ -11,7 +12,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.SideEffect
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowInsetsControllerCompat
 
 private val DarkColorScheme = darkColorScheme(
     primary = Purple40,      // brand purple
@@ -24,7 +27,6 @@ private val LightColorScheme = lightColorScheme(
     secondary = PurpleGrey40,
     onPrimary = Color.White  // text/icons on topbar
 )
-
 @Composable
 fun HloPGTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
@@ -41,12 +43,15 @@ fun HloPGTheme(
         else -> LightColorScheme
     }
 
-    val systemUiController = rememberSystemUiController()
-    SideEffect {
-        systemUiController.setStatusBarColor(
-            color = colorScheme.primary,
-            darkIcons = false // keep icons white for contrast
-        )
+    val view = LocalView.current
+    if (!view.isInEditMode) {
+        SideEffect {
+            val window = (view.context as Activity).window
+            window.statusBarColor = colorScheme.primary.toArgb()
+
+            WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars =
+                !darkTheme // make icons dark in light theme
+        }
     }
 
     MaterialTheme(

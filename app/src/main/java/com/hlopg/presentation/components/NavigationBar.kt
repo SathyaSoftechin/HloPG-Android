@@ -9,29 +9,48 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BookmarkAdded
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.compose.material.icons.filled.Notifications
 
 
-// Bottom Navigation Component with Material Theme
+// Define Screens
+sealed class Screen(val route: String, val icon: ImageVector, val label: String) {
+    object Home : Screen("home", Icons.Default.Home, "Home")
+    object Liked : Screen("liked", Icons.Default.Favorite, "Liked")
+    object Bookings : Screen("bookings", Icons.Default.BookmarkAdded, "Bookings")
+    object Profile : Screen("profile", Icons.Default.Person, "Profile")
+    object Notifications : Screen("notifications", Icons.Default.Notifications, "Notifications")
+}
+
 @Composable
-fun BottomNavigation() {
+fun BottomNavigationBar(navController: NavController) {
+    val items = listOf(
+        Screen.Home, Screen.Liked, Screen.Bookings, Screen.Profile
+    )
+
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.surface,
-        shadowElevation = 8.dp
+        color = Color.White,
+        tonalElevation = 8.dp
     ) {
         Row(
             modifier = Modifier
@@ -39,22 +58,21 @@ fun BottomNavigation() {
                 .padding(vertical = 12.dp),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            BottomNavItem(
-                icon = Icons.Default.Home,
-                isSelected = true
-            )
-            BottomNavItem(
-                icon = Icons.Default.Favorite,
-                isSelected = false
-            )
-            BottomNavItem(
-                icon = Icons.Default.BookmarkAdded,
-                isSelected = false
-            )
-            BottomNavItem(
-                icon = Icons.Default.Person,
-                isSelected = false
-            )
+            items.forEach { screen ->
+                BottomNavItem(
+                    icon = screen.icon,
+                    name = screen.label,
+                    isSelected = currentRoute == screen.route,
+                    onClick = {
+                        if (currentRoute != screen.route) {
+                            navController.navigate(screen.route) {
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
+                    }
+                )
+            }
         }
     }
 }
@@ -62,8 +80,9 @@ fun BottomNavigation() {
 @Composable
 fun BottomNavItem(
     icon: ImageVector,
+    name: String,
     isSelected: Boolean,
-    onClick: () -> Unit = {}
+    onClick: () -> Unit
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -73,16 +92,16 @@ fun BottomNavItem(
     ) {
         Icon(
             imageVector = icon,
-            contentDescription = null,
+            contentDescription = name,
             tint = if (isSelected) MaterialTheme.colorScheme.primary
             else MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.size(20.dp)
+            modifier = Modifier.size(26.dp)
+        )
+        Text(
+            text = name,
+            style = MaterialTheme.typography.labelSmall,
+            color = if (isSelected) MaterialTheme.colorScheme.primary
+            else MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
-}
-
-@Composable
-@Preview
-fun BottomNavigationPreview() {
-    BottomNavigation()
 }

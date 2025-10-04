@@ -22,11 +22,9 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 data class PGHostelAdData(
     val imageRes: Int? = null,
@@ -47,19 +45,25 @@ fun PGHostelSlideshow(
     modifier: Modifier = Modifier,
     autoSlideInterval: Long = 3000L // 3 seconds
 ) {
-    val pagerState = rememberPagerState(pageCount = { slides.size })
-    val coroutineScope = rememberCoroutineScope()
+    if (slides.isEmpty()) return
 
-    LaunchedEffect(pagerState) {
+    val loopCount = Int.MAX_VALUE
+    val startPage = loopCount / 2 // start in the middle for infinite feel
+
+    val pagerState = rememberPagerState(
+        initialPage = startPage,
+        pageCount = {loopCount}
+    )
+
+    // Auto-scroll coroutine
+    LaunchedEffect(Unit) {
         while (true) {
             delay(autoSlideInterval)
-            val nextPage = (pagerState.currentPage + 1) % slides.size
-
             pagerState.animateScrollToPage(
-                page = nextPage,
+                page = pagerState.currentPage + 1,
                 animationSpec = tween(
-                    durationMillis = 1000, // Longer duration = smoother
-                    easing = FastOutSlowInEasing // Smooth easing curve
+                    durationMillis = 1000,
+                    easing = FastOutSlowInEasing
                 )
             )
         }
@@ -69,13 +73,14 @@ fun PGHostelSlideshow(
         modifier = modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Slideshow
+        // Horizontal pager
         HorizontalPager(
             state = pagerState,
             modifier = Modifier.fillMaxWidth()
         ) { page ->
+            val slideIndex = page % slides.size
             PGHostelAdCard(
-                data = slides[page],
+                data = slides[slideIndex],
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp)
@@ -84,10 +89,10 @@ fun PGHostelSlideshow(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Dots Indicator
+        // Dots indicator
         DotsIndicator(
             totalDots = slides.size,
-            selectedIndex = pagerState.currentPage,
+            selectedIndex = pagerState.currentPage % slides.size,
             modifier = Modifier.padding(vertical = 4.dp)
         )
     }
@@ -108,25 +113,23 @@ fun PGHostelAdCard(
                 .fillMaxWidth()
                 .height(180.dp)
         ) {
-            // Green gradient background
+            // Gradient background
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(
-                        brush = Brush.horizontalGradient(
+                        brush = Brush.verticalGradient(
                             colors = listOf(
-                                Color(0xFF5A3FD8), // Darker purple
-                                Color(0xFF7656FF), // Your base purple
-                                Color(0xFF9A7FFF)  // Lighter green
+                                Color(0xFF5A3FD8),
+                                Color(0xFF7656FF),
+                                Color(0xFF9A7FFF)
                             )
                         )
                     )
             )
 
-            Row(
-                modifier = Modifier.fillMaxSize()
-            ) {
-                // Left side - Content
+            Row(modifier = Modifier.fillMaxSize()) {
+                // Left side - content
                 Column(
                     modifier = Modifier
                         .weight(1f)
@@ -134,7 +137,6 @@ fun PGHostelAdCard(
                         .padding(16.dp),
                     verticalArrangement = Arrangement.SpaceBetween
                 ) {
-                    // Title
                     Text(
                         text = data.title,
                         color = Color.White,
@@ -143,10 +145,7 @@ fun PGHostelAdCard(
                         lineHeight = 34.sp
                     )
 
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        // Subtitle
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(
                             text = data.subtitle,
                             color = Color.White,
@@ -155,19 +154,12 @@ fun PGHostelAdCard(
                             lineHeight = 12.sp
                         )
 
-                        // Features
                         data.features.forEach { feature ->
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                // Bullet point
+                            Row(verticalAlignment = Alignment.CenterVertically) {
                                 Box(
                                     modifier = Modifier
                                         .size(4.dp)
-                                        .background(
-                                            Color.White,
-                                            CircleShape
-                                        )
+                                        .background(Color.White, CircleShape)
                                 )
                                 Spacer(modifier = Modifier.width(6.dp))
                                 Text(
@@ -181,11 +173,7 @@ fun PGHostelAdCard(
 
                         Spacer(modifier = Modifier.height(8.dp))
 
-                        // Contact info with icon
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            // House icon
+                        Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(
                                 imageVector = Icons.Default.Home,
                                 contentDescription = "Contact",
@@ -211,7 +199,7 @@ fun PGHostelAdCard(
                     }
                 }
 
-                // Right side - Image
+                // Right side - image
                 Box(
                     modifier = Modifier
                         .weight(1f)
@@ -228,7 +216,6 @@ fun PGHostelAdCard(
                             contentScale = ContentScale.Crop
                         )
                     } else {
-                        // Placeholder for image
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
@@ -266,11 +253,7 @@ fun DotsIndicator(
                 modifier = Modifier
                     .size(8.dp)
                     .background(
-                        color = if (index == selectedIndex) {
-                            Color.Black
-                        } else {
-                            Color.Gray.copy(alpha = 0.5f)
-                        },
+                        color = if (index == selectedIndex) Color.Black else Color.Gray.copy(alpha = 0.5f),
                         shape = CircleShape
                     )
             )

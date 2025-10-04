@@ -11,13 +11,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.hlopg.R
 import com.hlopg.presentation.components.*
 
 @Composable
-fun HomeScreenCompactWithLightBg() {
+fun HomeScreenCompactWithLightBg(navController: NavController) {
     // Sample slideshow data
     val slides = listOf(
         PGHostelAdData(
@@ -49,10 +51,11 @@ fun HomeScreenCompactWithLightBg() {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
+            .wrapContentHeight()
             .background(Color(0xFFF8F9FA))
     ) {
         item {
-            HelloPGHeader()
+            HelloPGHeader(navController = navController)
         }
 
         item {
@@ -68,7 +71,7 @@ fun HomeScreenCompactWithLightBg() {
         }
 
         item {
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(10.dp))
         }
 
         item {
@@ -82,7 +85,7 @@ fun HomeScreenCompactWithLightBg() {
         }
 
         item {
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(18.dp))
         }
 
         item {
@@ -104,8 +107,8 @@ fun HomeScreenCompactWithLightBg() {
                             hasWashService = index % 3 != 0
                         ),
                         modifier = Modifier
-                            .width(200.dp)
-                            .height(250.dp),
+                            .width(150.dp)
+                            .height(200.dp),
                         onCardClick = {
                             println("Popular Madhapur Card $index clicked")
                         },
@@ -118,7 +121,7 @@ fun HomeScreenCompactWithLightBg() {
         }
 
         item {
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(10.dp))
         }
 
         item {
@@ -154,8 +157,8 @@ fun HomeScreenCompactWithLightBg() {
                             hasWashService = index % 2 == 0
                         ),
                         modifier = Modifier
-                            .width(200.dp)
-                            .height(250.dp),
+                            .width(150.dp)
+                            .height(200.dp),
                         onCardClick = {
                             println("Budget PG Card $index clicked")
                         },
@@ -168,7 +171,7 @@ fun HomeScreenCompactWithLightBg() {
         }
 
         item {
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(10.dp))
         }
 
         item {
@@ -182,7 +185,7 @@ fun HomeScreenCompactWithLightBg() {
         }
 
         item {
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(4.dp))
         }
 
         item {
@@ -204,8 +207,8 @@ fun HomeScreenCompactWithLightBg() {
                             hasWashService = true
                         ),
                         modifier = Modifier
-                            .width(200.dp)
-                            .height(250.dp),
+                            .width(150.dp)
+                            .height(200.dp),
                         onCardClick = {
                             println("Premium PG Card $index clicked")
                         },
@@ -218,7 +221,7 @@ fun HomeScreenCompactWithLightBg() {
         }
 
         item {
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(10.dp))
         }
 
         item {
@@ -254,8 +257,8 @@ fun HomeScreenCompactWithLightBg() {
                             hasWashService = index % 3 != 0
                         ),
                         modifier = Modifier
-                            .width(200.dp)
-                            .height(250.dp),
+                            .width(150.dp)
+                            .height(200.dp),
                         onCardClick = {
                             println("Tech Hub PG Card $index clicked")
                         },
@@ -304,8 +307,8 @@ fun HomeScreenCompactWithLightBg() {
                             hasWashService = index % 3 == 0
                         ),
                         modifier = Modifier
-                            .width(200.dp)
-                            .height(250.dp),
+                            .width(150.dp)
+                            .height(200.dp),
                         onCardClick = {
                             println("Student PG Card $index clicked")
                         },
@@ -322,3 +325,4 @@ fun HomeScreenCompactWithLightBg() {
         }
     }
 }
+
