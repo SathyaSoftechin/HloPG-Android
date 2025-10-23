@@ -80,6 +80,7 @@ dependencies {
     implementation(libs.androidx.compose.animation)
     implementation(libs.androidx.compose.foundation.layout)
     implementation(libs.androidx.runtime)
+    implementation(libs.foundation)
 
     // Testing dependencies
     testImplementation(libs.junit)

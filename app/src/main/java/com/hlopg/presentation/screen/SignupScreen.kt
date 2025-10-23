@@ -1,7 +1,6 @@
 package com.hlopg.presentation.screen
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -34,12 +33,21 @@ import com.hlopg.utils.InputType
 import com.hlopg.utils.ValidationUtils
 
 @Composable
-fun LoginScreen() {
-    var emailOrPhone by remember { mutableStateOf("") }
+fun SignupScreen() {
+    var fullName by remember { mutableStateOf("") }
+    var mobileNumber by remember { mutableStateOf("") }
+    var emailAddress by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
+    var confirmPasswordVisible by remember { mutableStateOf(false) }
+    var agreeTerms by remember { mutableStateOf(false) }
+
+    var isFullNameFocused by remember { mutableStateOf(false) }
+    var isMobileFocused by remember { mutableStateOf(false) }
     var isEmailFocused by remember { mutableStateOf(false) }
     var isPasswordFocused by remember { mutableStateOf(false) }
+    var isConfirmPasswordFocused by remember { mutableStateOf(false) }
 
     var errorMessage by remember { mutableStateOf("") }
     var showError by remember { mutableStateOf(false) }
@@ -54,39 +62,13 @@ fun LoginScreen() {
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Top Illustration Image - extends behind status bar
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-            ) {
-                Card(
-                    modifier = Modifier
-                        .wrapContentSize()
-                        .padding(6.dp,30.dp,6.dp,1.dp)
-                        .height(245.dp),
-                    shape = RoundedCornerShape(
-                        topStart = 12.dp,
-                        topEnd = 12.dp,
-                        bottomEnd = 12.dp,
-                        bottomStart = 12.dp
-                    )
-                ) {
-                    Image(
-                        painter = painterResource(R.drawable.login_screen_image),
-                        contentDescription = "PG Room Illustration",
-                        modifier = Modifier.fillMaxWidth(),
-                        contentScale = ContentScale.Crop
-                    )
-                }
-            }
+            Spacer(modifier = Modifier.height(48.dp))
 
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Login Card
+            // Signup Card
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 24.dp)
+                    .padding(horizontal = 16.dp)
                     .wrapContentHeight(),
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(
@@ -99,17 +81,17 @@ fun LoginScreen() {
                 Column(
                     modifier = Modifier
                         .wrapContentHeight()
-                        .padding(24.dp),
+                        .padding(20.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // App Icon and Login Title
+                    // App Icon and Sign up Title
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center
                     ) {
                         Box(
                             modifier = Modifier
-                                .size(40.dp)
+                                .size(32.dp)
                                 .clip(CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
@@ -117,34 +99,34 @@ fun LoginScreen() {
                                 painter = painterResource(R.drawable.hlopg_icon),
                                 contentDescription = "App Icon",
                                 tint = Color.Unspecified,
-                                modifier = Modifier.size(24.dp)
+                                modifier = Modifier.size(20.dp)
                             )
                         }
 
-                        Spacer(modifier = Modifier.width(12.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
 
                         Text(
-                            text = "Login",
-                            fontSize = 24.sp,
+                            text = "Sign up",
+                            fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.Black
                         )
                     }
 
-                    Spacer(modifier = Modifier.height(24.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
 
-                    // Email/Phone Input
+                    // Full Name Input
                     OutlinedTextField(
-                        value = emailOrPhone,
-                        onValueChange = { emailOrPhone = it },
+                        value = fullName,
+                        onValueChange = { fullName = it },
                         modifier = Modifier
                             .fillMaxWidth()
                             .onFocusChanged { focusState ->
-                                isEmailFocused = focusState.isFocused
+                                isFullNameFocused = focusState.isFocused
                             },
                         placeholder = {
                             Text(
-                                text = "Email Address / Mobile Number",
+                                text = "Full Name",
                                 color = Color.Gray,
                                 fontSize = 14.sp
                             )
@@ -163,7 +145,71 @@ fun LoginScreen() {
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
                     )
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Mobile Number Input
+                    OutlinedTextField(
+                        value = mobileNumber,
+                        onValueChange = { mobileNumber = it },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .onFocusChanged { focusState ->
+                                isMobileFocused = focusState.isFocused
+                            },
+                        placeholder = {
+                            Text(
+                                text = "Mobile Number",
+                                color = Color.Gray,
+                                fontSize = 14.sp
+                            )
+                        },
+                        shape = RoundedCornerShape(8.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = Color(0xFFE0E0E0),
+                            focusedContainerColor = Color.White,
+                            unfocusedContainerColor = Color.White,
+                            focusedTextColor = Color.Black,
+                            unfocusedTextColor = Color.Black,
+                            cursorColor = MaterialTheme.colorScheme.primary
+                        ),
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Email Address Input
+                    OutlinedTextField(
+                        value = emailAddress,
+                        onValueChange = { emailAddress = it },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .onFocusChanged { focusState ->
+                                isEmailFocused = focusState.isFocused
+                            },
+                        placeholder = {
+                            Text(
+                                text = "Email Address",
+                                color = Color.Gray,
+                                fontSize = 14.sp
+                            )
+                        },
+                        shape = RoundedCornerShape(8.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = Color(0xFFE0E0E0),
+                            focusedContainerColor = Color.White,
+                            unfocusedContainerColor = Color.White,
+                            focusedTextColor = Color.Black,
+                            unfocusedTextColor = Color.Black,
+                            cursorColor = MaterialTheme.colorScheme.primary
+                        ),
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
 
                     // Password Input
                     OutlinedTextField(
@@ -210,42 +256,87 @@ fun LoginScreen() {
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    // Forgot Password
+                    // Confirm Password Input
+                    OutlinedTextField(
+                        value = confirmPassword,
+                        onValueChange = { confirmPassword = it },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .onFocusChanged { focusState ->
+                                isConfirmPasswordFocused = focusState.isFocused
+                            },
+                        placeholder = {
+                            Text(
+                                text = "Confirm Password",
+                                color = Color.Gray,
+                                fontSize = 14.sp
+                            )
+                        },
+                        visualTransformation = if (!confirmPasswordVisible)
+                            PasswordVisualTransformation()
+                        else
+                            VisualTransformation.None,
+                        trailingIcon = {
+                            IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
+                                Icon(
+                                    imageVector = if (confirmPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                                    contentDescription = if (confirmPasswordVisible) "Hide password" else "Show password",
+                                    tint = Color.Gray
+                                )
+                            }
+                        },
+                        shape = RoundedCornerShape(8.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = Color(0xFFE0E0E0),
+                            focusedContainerColor = Color.White,
+                            unfocusedContainerColor = Color.White,
+                            focusedTextColor = Color.Black,
+                            unfocusedTextColor = Color.Black,
+                            cursorColor = MaterialTheme.colorScheme.primary
+                        ),
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Terms and Conditions Checkbox
                     Row(
                         modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Start
                     ) {
-                        TextButton(
-                            onClick = { /* Handle forgot password */ },
-                            contentPadding = PaddingValues(0.dp)
-                        ) {
-                            Text(
-                                text = "Forgot password?",
-                                fontSize = 13.sp,
-                                color = MaterialTheme.colorScheme.primary,
-                                fontWeight = FontWeight.Medium
+                        Checkbox(
+                            checked = agreeTerms,
+                            onCheckedChange = { agreeTerms = it },
+                            colors = CheckboxDefaults.colors(
+                                checkedColor = MaterialTheme.colorScheme.primary,
+                                uncheckedColor = Color.Gray
                             )
-                        }
+                        )
+                        Text(
+                            text = "Agree Terms And Conditions.",
+                            fontSize = 13.sp,
+                            color = Color.Black.copy(alpha = 0.7f)
+                        )
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Login Button
+                    // Sign Up Button
                     Button(
                         onClick = {
-                            val validation = ValidationUtils.validateLoginForm(emailOrPhone, password)
-                            if (validation.isValid) {
-                                showError = false
-                                val inputType = ValidationUtils.identifyInputType(emailOrPhone)
-                                val formattedPhone = if (inputType == InputType.PHONE) {
-                                    ValidationUtils.formatPhoneNumber(emailOrPhone)
-                                } else {
-                                    emailOrPhone
-                                }
-                                // TODO: Call login API
-                            } else {
-                                errorMessage = validation.errorMessage
+                            // TODO: Add validation logic
+                            if (!agreeTerms) {
+                                errorMessage = "Please agree to terms and conditions"
                                 showError = true
+                            } else if (password != confirmPassword) {
+                                errorMessage = "Passwords do not match"
+                                showError = true
+                            } else {
+                                showError = false
+                                // TODO: Call signup API
                             }
                         },
                         modifier = Modifier
@@ -260,7 +351,7 @@ fun LoginScreen() {
                         )
                     ) {
                         Text(
-                            text = "Login",
+                            text = "Sign Up",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = Color.White
@@ -269,23 +360,23 @@ fun LoginScreen() {
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Register Text
+                    // Already have account Text
                     Row(
                         horizontalArrangement = Arrangement.Center,
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(
-                            text = "New User? ",
+                            text = "Already have an Account? ",
                             fontSize = 13.sp,
                             color = Color.Black.copy(alpha = 0.6f)
                         )
                         TextButton(
-                            onClick = { /* Handle register */ },
+                            onClick = { /* Handle login navigation */ },
                             contentPadding = PaddingValues(0.dp)
                         ) {
                             Text(
-                                text = "Register now",
+                                text = "Login",
                                 fontSize = 16.sp,
                                 color = MaterialTheme.colorScheme.primary,
                                 fontWeight = FontWeight.SemiBold
@@ -312,7 +403,7 @@ fun LoginScreen() {
                     ) {
                         Image(
                             painter = painterResource(R.drawable.google),
-                            contentDescription = "Google",
+                            contentDescription = "Sign in with Google",
                             modifier = Modifier.fillMaxSize()
                         )
                     }
@@ -326,6 +417,6 @@ fun LoginScreen() {
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
-fun PreviewLoginScreen() {
-    LoginScreen()
+fun PreviewSignupScreen() {
+    SignupScreen()
 }

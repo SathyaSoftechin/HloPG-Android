@@ -43,16 +43,16 @@ fun HloPGTheme(
         else -> LightColorScheme
     }
 
-    val view = LocalView.current
-    if (!view.isInEditMode) {
-        SideEffect {
-            val window = (view.context as Activity).window
-            window.statusBarColor = colorScheme.primary.toArgb()
-
-            WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars =
-                !darkTheme // make icons dark in light theme
-        }
-    }
+//    val view = LocalView.current
+//    if (!view.isInEditMode) {
+//        SideEffect {
+//            val window = (view.context as Activity).window
+//            window.statusBarColor = colorScheme.primary.toArgb()
+//
+//            WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars =
+//                !darkTheme // make icons dark in light theme
+//        }
+//    }
 
     MaterialTheme(
         colorScheme = colorScheme,

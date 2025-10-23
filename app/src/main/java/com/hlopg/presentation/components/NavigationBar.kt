@@ -1,107 +1,83 @@
-package com.hlopg.presentation.components
-
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.BookmarkAdded
+import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.outlined.BookmarkBorder
+import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
-import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.compose.material.icons.filled.Notifications
+import com.hlopg.presentation.navigation.Screen
 
-
-// Define Screens
-sealed class Screen(val route: String, val icon: ImageVector, val label: String) {
-    object Home : Screen("home", Icons.Default.Home, "Home")
-    object Liked : Screen("liked", Icons.Default.Favorite, "Liked")
-    object Bookings : Screen("bookings", Icons.Default.BookmarkAdded, "Bookings")
-    object Profile : Screen("profile", Icons.Default.Person, "Profile")
-    object Notifications : Screen("notifications", Icons.Default.Notifications, "Notifications")
-}
 
 @Composable
-fun BottomNavigationBar(navController: NavController) {
+fun BottomNavBar(
+    selectedTab: Screen,
+    onTabSelected: (Screen) -> Unit,
+    modifier: Modifier = Modifier
+) {
     val items = listOf(
-        Screen.Home, Screen.Liked, Screen.Bookings, Screen.Profile
+        Screen.Home to Pair(Icons.Filled.Home, Icons.Outlined.Home),
+        Screen.Bookings to Pair(Icons.Filled.Bookmark, Icons.Outlined.BookmarkBorder),
+        Screen.Favorites to Pair(Icons.Filled.Favorite, Icons.Outlined.FavoriteBorder),
+        Screen.Profile to Pair(Icons.Filled.Person, Icons.Outlined.Person)
     )
 
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry?.destination?.route
-
     Surface(
-        modifier = Modifier.fillMaxWidth(),
-        color = Color.White,
-        tonalElevation = 8.dp
+        modifier = modifier
+            .padding(vertical = 6.dp, horizontal = 22.dp)
+            .shadow(8.dp, RoundedCornerShape(48.dp)),
+        shape = RoundedCornerShape(48.dp),
+        color = Color.White.copy(alpha = 0.2f)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 12.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly
+                .background(Color.Black.copy(alpha = 0.7f))
+                .padding(vertical = 10.dp, horizontal = 12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            items.forEach { screen ->
-                BottomNavItem(
-                    icon = screen.icon,
-                    name = screen.label,
-                    isSelected = currentRoute == screen.route,
-                    onClick = {
-                        if (currentRoute != screen.route) {
-                            navController.navigate(screen.route) {
-                                launchSingleTop = true
-                                restoreState = true
-                            }
-                        }
-                    }
-                )
+            items.forEach { (screen, icons) ->
+                val (filled, outlined) = icons
+                val selected = screen == selectedTab
+
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
+                        .background(if (selected) Color.White else Color.Transparent)
+                        .clickable { onTabSelected(screen) },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = if (selected) filled else outlined,
+                        contentDescription = screen.route,
+                        tint = if (selected) MaterialTheme.colorScheme.primary else Color.White.copy(0.5f),
+                        modifier = Modifier.size(26.dp)
+                    )
+                }
             }
         }
-    }
-}
-
-@Composable
-fun BottomNavItem(
-    icon: ImageVector,
-    name: String,
-    isSelected: Boolean,
-    onClick: () -> Unit
-) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier
-            .clickable { onClick() }
-            .padding(vertical = 8.dp, horizontal = 12.dp)
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = name,
-            tint = if (isSelected) MaterialTheme.colorScheme.primary
-            else MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.size(26.dp)
-        )
-        Text(
-            text = name,
-            style = MaterialTheme.typography.labelSmall,
-            color = if (isSelected) MaterialTheme.colorScheme.primary
-            else MaterialTheme.colorScheme.onSurfaceVariant
-        )
     }
 }

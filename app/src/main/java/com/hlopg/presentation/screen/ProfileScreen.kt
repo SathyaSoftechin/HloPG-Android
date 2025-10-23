@@ -1,310 +1,173 @@
 package com.hlopg.presentation.screen
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.hlopg.R
-import java.text.SimpleDateFormat
-import java.util.*
 
-// ==================== PROFILE SCREEN ====================
 @Composable
-fun ProfileScreen(
-    onEditProfile: () -> Unit = {},
-    onSettingsClick: () -> Unit = {},
-    onLogoutClick: () -> Unit = {}
-) {
-    LazyColumn(
+fun ProfileScreen() {
+    Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF8F9FA))
+            .background(Color(0xFF505050))
     ) {
-        // Header Section
-        item {
-            ProfileHeaderSection(
-                onEditProfile = onEditProfile,
-                onSettingsClick = onSettingsClick
-            )
-        }
 
-        item { Spacer(modifier = Modifier.height(16.dp)) }
 
-        // Stats Section
-        item {
-            ProfileStatsSection()
-        }
-
-        item { Spacer(modifier = Modifier.height(16.dp)) }
-
-        // Menu Items
-        item {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                elevation = CardDefaults.cardElevation(2.dp)
-            ) {
-                Column {
-                    ProfileMenuItem(
-                        icon = Icons.Outlined.Person,
-                        title = "My Profile",
-                        onClick = onEditProfile
-                    )
-                    Divider(color = Color(0xFFE0E0E0))
-                    ProfileMenuItem(
-                        icon = Icons.Outlined.History,
-                        title = "View History",
-                        onClick = {}
-                    )
-                    Divider(color = Color(0xFFE0E0E0))
-                    ProfileMenuItem(
-                        icon = Icons.Outlined.Payment,
-                        title = "Payment Methods",
-                        onClick = {}
-                    )
-                    Divider(color = Color(0xFFE0E0E0))
-                    ProfileMenuItem(
-                        icon = Icons.Outlined.Security,
-                        title = "Privacy & Security",
-                        onClick = {}
-                    )
-                    Divider(color = Color(0xFFE0E0E0))
-                    ProfileMenuItem(
-                        icon = Icons.Outlined.Help,
-                        title = "Help & Support",
-                        onClick = {}
-                    )
-                }
-            }
-        }
-
-        item { Spacer(modifier = Modifier.height(24.dp)) }
-
-        // Logout Button
-        item {
-            OutlinedButton(
-                onClick = onLogoutClick,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-                    .height(50.dp),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = Color.Red
-                ),
-                border = androidx.compose.foundation.BorderStroke(1.dp, Color.Red)
-            ) {
-                Icon(Icons.Outlined.Logout, contentDescription = null)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Logout", fontSize = 16.sp, fontWeight = FontWeight.Medium)
-            }
-        }
-
-        item { Spacer(modifier = Modifier.height(24.dp)) }
-    }
-}
-
-@Composable
-fun ProfileHeaderSection(
-    onEditProfile: () -> Unit,
-    onSettingsClick: () -> Unit
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(2.dp)
-    ) {
-        Column(
+        Surface(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(20.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .fillMaxSize(),
+            shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
+            color = Color.White
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
-                IconButton(onClick = onSettingsClick) {
+                Spacer(Modifier.height(8.dp))
+
+                Text(
+                    text = "Account",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 24.dp, bottom = 16.dp),
+                    textAlign = TextAlign.Center
+                )
+
+                // 🔹 User Info Card
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Color(0xFFE3F2FD))
+                        .clickable { }
+                        .padding(12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .background(Color(0xFFFFF59D))
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Person,
+                                contentDescription = null,
+                                tint = Color(0xFF7556FF),
+                                modifier = Modifier
+                                    .align(Alignment.Center)
+                                    .size(24.dp)
+                            )
+                        }
+
+                        Text(
+                            text = "User Name",
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = Color.Black
+                        )
+                    }
+
                     Icon(
-                        Icons.Outlined.Settings,
-                        contentDescription = "Settings",
-                        tint = MaterialTheme.colorScheme.primary
+                        imageVector = Icons.Filled.Edit,
+                        contentDescription = "Edit",
+                        tint = Color(0xFF1976D2),
+                        modifier = Modifier.size(20.dp)
                     )
                 }
-            }
 
-            Box(
-                modifier = Modifier
-                    .size(100.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
-                    .border(3.dp, MaterialTheme.colorScheme.primary, CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    Icons.Filled.Person,
-                    contentDescription = null,
-                    modifier = Modifier.size(60.dp),
-                    tint = MaterialTheme.colorScheme.primary
+                Spacer(Modifier.height(16.dp))
+
+                // 🔹 Menu Items
+                MenuItem(Icons.Filled.Notifications, "Notifications")
+                MenuItem(Icons.Filled.Favorite, "Favourite List")
+                MenuItem(Icons.Filled.CheckCircle, "Booked List")
+                MenuItem(Icons.Filled.CreditCard, "Payment Details")
+                MenuItem(Icons.Filled.Description, "Terms and Conditions")
+                MenuItem(Icons.Filled.Help, "Help and Support")
+                MenuItem(Icons.Filled.Logout, "Logout", iconTint = Color(0xFFFF5252), showArrow = false)
+
+                Spacer(modifier = Modifier.height(30.dp))
+
+                Text(
+                    text = "Version 01",
+                    fontSize = 12.sp,
+                    color = Color.Gray,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp),
+                    textAlign = TextAlign.Center
                 )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = "Rajesh Kumar",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.Black
-            )
-
-            Text(
-                text = "rajesh.kumar@email.com",
-                fontSize = 14.sp,
-                color = Color.Gray,
-                modifier = Modifier.padding(top = 4.dp)
-            )
-
-            Text(
-                text = "+91 98765 43210",
-                fontSize = 14.sp,
-                color = Color.Gray,
-                modifier = Modifier.padding(top = 2.dp)
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Button(
-                onClick = onEditProfile,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(45.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary
-                )
-            ) {
-                Icon(Icons.Outlined.Edit, contentDescription = null)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Edit Profile")
             }
         }
     }
 }
 
 @Composable
-fun ProfileStatsSection() {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(2.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(20.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            StatItem("5", "Bookings")
-            VerticalDivider()
-            StatItem("12", "Liked")
-            VerticalDivider()
-            StatItem("3", "Reviews")
-        }
-    }
-}
-
-@Composable
-fun StatItem(value: String, label: String) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(
-            text = value,
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary
-        )
-        Text(
-            text = label,
-            fontSize = 14.sp,
-            color = Color.Gray
-        )
-    }
-}
-
-@Composable
-fun VerticalDivider() {
-    Box(
-        modifier = Modifier
-            .width(1.dp)
-            .height(40.dp)
-            .background(Color(0xFFE0E0E0))
-    )
-}
-
-@Composable
-fun ProfileMenuItem(
-    icon: ImageVector,
-    title: String,
-    onClick: () -> Unit
+fun MenuItem(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    text: String,
+    iconTint: Color = Color(0xFF7556FF),
+    showArrow: Boolean = true,
+    onClick: () -> Unit = {}
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .padding(vertical = 14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.size(24.dp)
-        )
-        Spacer(modifier = Modifier.width(16.dp))
-        Text(
-            text = title,
-            fontSize = 16.sp,
-            color = Color.Black,
-            modifier = Modifier.weight(1f)
-        )
-        Icon(
-            Icons.Filled.ChevronRight,
-            contentDescription = null,
-            tint = Color.Gray
-        )
-    }
-}
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = iconTint,
+                modifier = Modifier.size(22.dp)
+            )
+            Text(
+                text = text,
+                fontSize = 15.sp,
+                color = Color.Black
+            )
+        }
 
-@Preview(showBackground = true)
-@Composable
-fun ProfileScreenPreview() {
-    MaterialTheme {
-        ProfileScreen()
+        if (showArrow) {
+            Icon(
+                imageVector = Icons.Filled.ChevronRight,
+                contentDescription = "Navigate",
+                tint = Color.Gray,
+                modifier = Modifier.size(20.dp)
+            )
+        }
     }
 }

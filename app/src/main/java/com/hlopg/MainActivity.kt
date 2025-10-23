@@ -1,149 +1,61 @@
 package com.hlopg
 
+import BottomNavBar
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.animation.*
-import androidx.compose.animation.core.*
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.runtime.Composable
+import androidx.compose.foundation.layout.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
+import androidx.compose.ui.unit.dp
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.hlopg.presentation.components.BottomNavigationBar
-import com.hlopg.presentation.screen.*
+import com.hlopg.presentation.navigation.NavGraph
+import com.hlopg.presentation.navigation.Screen
 import com.hlopg.presentation.ui.theme.HloPGTheme
-import com.hlopg.presentation.components.Screen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         setContent {
             HloPGTheme {
-                MainScreen()
-            }
-        }
-    }
-}
+                val navController = rememberNavController()
 
-@Composable
-fun MainScreen() {
-    val navController = rememberNavController()
+                // Observe current destination from navController
+                val navBackStackEntry by navController.currentBackStackEntryAsState()
+                val currentRoute = navBackStackEntry?.destination?.route
 
-    Scaffold(
-        bottomBar = { BottomNavigationBar(navController) },
-        modifier = Modifier.fillMaxSize()
-    ) { innerPadding ->
-        Surface(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
-            color = MaterialTheme.colorScheme.background
-        ) {
-            NavHost(
-                navController = navController,
-                startDestination = Screen.Home.route
-            ) {
-                // Home Screen - Crossfade (ultra minimal)
-                composable(
-                    route = Screen.Home.route,
-                    enterTransition = { fadeIn(tween(200)) },
-                    exitTransition = { fadeOut(tween(200)) },
-                    popEnterTransition = { fadeIn(tween(200)) },
-                    popExitTransition = { fadeOut(tween(200)) }
-                ) {
-                    HomeScreenCompactWithLightBg(navController)
+                // Derive selected tab based on route
+                val selectedTab = when (currentRoute) {
+                    Screen.Home.route -> Screen.Home
+                    Screen.Bookings.route -> Screen.Bookings
+                    Screen.Favorites.route -> Screen.Favorites
+                    Screen.Profile.route -> Screen.Profile
+                    else -> Screen.Home
                 }
 
-                // Liked Screen - Simple horizontal slide
-                composable(
-                    route = Screen.Liked.route,
-                    enterTransition = {
-                        slideInHorizontally(
-                            initialOffsetX = { it },
-                            animationSpec = tween(250)
-                        )
-                    },
-                    exitTransition = {
-                        slideOutHorizontally(
-                            targetOffsetX = { -it },
-                            animationSpec = tween(250)
-                        )
-                    },
-                    popEnterTransition = {
-                        slideInHorizontally(
-                            initialOffsetX = { -it },
-                            animationSpec = tween(250)
-                        )
-                    },
-                    popExitTransition = {
-                        slideOutHorizontally(
-                            targetOffsetX = { it },
-                            animationSpec = tween(250)
-                        )
-                    }
-                ) {
-                    LikedScreen()
-                }
+                Box(modifier = Modifier.fillMaxSize()) {
+                    NavGraph(navController = navController)
 
-                // Bookings Screen - Quick fade
-                composable(
-                    route = Screen.Bookings.route,
-                    enterTransition = { fadeIn(tween(200)) },
-                    exitTransition = { fadeOut(tween(200)) },
-                    popEnterTransition = { fadeIn(tween(200)) },
-                    popExitTransition = { fadeOut(tween(200)) }
-                ) {
-                    BookingsScreen()
-                }
-
-                // Profile Screen - Vertical slide
-                composable(
-                    route = Screen.Profile.route,
-                    enterTransition = {
-                        slideInVertically(
-                            initialOffsetY = { it },
-                            animationSpec = tween(250)
-                        )
-                    },
-                    exitTransition = {
-                        slideOutVertically(
-                            targetOffsetY = { it },
-                            animationSpec = tween(250)
-                        )
-                    },
-                    popEnterTransition = {
-                        slideInVertically(
-                            initialOffsetY = { it },
-                            animationSpec = tween(250)
-                        )
-                    },
-                    popExitTransition = {
-                        slideOutVertically(
-                            targetOffsetY = { it },
-                            animationSpec = tween(250)
-                        )
-                    }
-                ) {
-                    ProfileScreen()
-                }
-
-                // Notifications Screen - Fade only
-                composable(
-                    route = Screen.Notifications.route,
-                    enterTransition = { fadeIn(tween(200)) },
-                    exitTransition = { fadeOut(tween(200)) },
-                    popEnterTransition = { fadeIn(tween(200)) },
-                    popExitTransition = { fadeOut(tween(200)) }
-                ) {
-                    NotificationsScreen()
+                    BottomNavBar(
+                        selectedTab = selectedTab,
+                        onTabSelected = { screen ->
+                            if (screen.route != currentRoute) {
+                                navController.navigate(screen.route) {
+                                    popUpTo(navController.graph.startDestinationId) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .navigationBarsPadding()
+                            .align(Alignment.BottomCenter)
+                    )
                 }
             }
         }
