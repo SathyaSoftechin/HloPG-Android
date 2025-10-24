@@ -1,5 +1,6 @@
 package com.hlopg.utils
 
+
 import java.util.regex.Pattern
 
 object ValidationUtils {

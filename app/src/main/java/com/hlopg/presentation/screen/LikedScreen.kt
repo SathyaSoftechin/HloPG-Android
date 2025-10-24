@@ -13,7 +13,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.hlopg.CompactPGCard
+import com.google.android.gms.common.util.CollectionUtils.listOf
+import com.hlopg.presentation.components.CompactPGCard
 
 @Composable
 fun FavoritesScreen() {

@@ -1,14 +1,12 @@
 package com.hlopg.presentation.screen
 
 
-import android.R.attr.onClick
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
-import androidx.compose.material3.AlertDialogDefaults.containerColor
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -20,14 +18,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-// ---------------------
-// Forgot Password Screen
-// ---------------------
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ForgotPasswordScreen(
     onBackClick: () -> Unit = {},
-    onResetClick: (String) -> Unit = {}
+    onOtpSent: (String) -> Unit = {}
 ) {
     var phoneNumber by remember { mutableStateOf("") }
 
@@ -53,9 +49,7 @@ fun ForgotPasswordScreen(
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.White
-                )
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
             )
         },
         containerColor = Color.White
@@ -95,9 +89,7 @@ fun ForgotPasswordScreen(
                     keyboardType = KeyboardType.Phone
                 ),
                 singleLine = true,
-                textStyle = LocalTextStyle.current.copy(
-                    color = Color.Black
-                ),
+                textStyle = LocalTextStyle.current.copy(color = Color.Black),
                 shape = RoundedCornerShape(8.dp),
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
@@ -109,18 +101,15 @@ fun ForgotPasswordScreen(
                 )
             )
 
-
             Spacer(modifier = Modifier.height(24.dp))
 
             Button(
-                onClick = { onResetClick(phoneNumber) },
+                onClick = { onOtpSent(phoneNumber) }, // call OTP navigation
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
                 shape = RoundedCornerShape(8.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary
-                )
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
                 Text(
                     text = "Reset Password",
@@ -128,10 +117,10 @@ fun ForgotPasswordScreen(
                     color = Color.White
                 )
             }
-
         }
     }
 }
+
 
 
 @Preview(showBackground = true, showSystemUi = true)

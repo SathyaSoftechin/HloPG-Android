@@ -13,10 +13,12 @@ import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -28,6 +30,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.hlopg.presentation.navigation.Screen
+import java.lang.ProcessBuilder.Redirect.to
 
 
 @Composable
@@ -38,7 +41,7 @@ fun BottomNavBar(
 ) {
     val items = listOf(
         Screen.Home to Pair(Icons.Filled.Home, Icons.Outlined.Home),
-        Screen.Bookings to Pair(Icons.Filled.Bookmark, Icons.Outlined.BookmarkBorder),
+        Screen.Search to Pair(Icons.Filled.Search, Icons.Outlined.Search),
         Screen.Favorites to Pair(Icons.Filled.Favorite, Icons.Outlined.FavoriteBorder),
         Screen.Profile to Pair(Icons.Filled.Person, Icons.Outlined.Person)
     )

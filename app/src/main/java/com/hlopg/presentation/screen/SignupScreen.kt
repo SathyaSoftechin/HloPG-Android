@@ -33,7 +33,10 @@ import com.hlopg.utils.InputType
 import com.hlopg.utils.ValidationUtils
 
 @Composable
-fun SignupScreen() {
+fun SignupScreen(
+    onSignupSuccess: () -> Unit,
+    onLoginClick: () -> Unit,
+) {
     var fullName by remember { mutableStateOf("") }
     var mobileNumber by remember { mutableStateOf("") }
     var emailAddress by remember { mutableStateOf("") }
@@ -336,7 +339,7 @@ fun SignupScreen() {
                                 showError = true
                             } else {
                                 showError = false
-                                // TODO: Call signup API
+                                onSignupSuccess()
                             }
                         },
                         modifier = Modifier
@@ -360,7 +363,6 @@ fun SignupScreen() {
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Already have account Text
                     Row(
                         horizontalArrangement = Arrangement.Center,
                         verticalAlignment = Alignment.CenterVertically,
@@ -372,7 +374,7 @@ fun SignupScreen() {
                             color = Color.Black.copy(alpha = 0.6f)
                         )
                         TextButton(
-                            onClick = { /* Handle login navigation */ },
+                            onClick = { onLoginClick() },
                             contentPadding = PaddingValues(0.dp)
                         ) {
                             Text(
@@ -418,5 +420,8 @@ fun SignupScreen() {
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun PreviewSignupScreen() {
-    SignupScreen()
+    SignupScreen(
+        onSignupSuccess = {},
+        onLoginClick = {}
+    )
 }

@@ -1,3 +1,5 @@
+package com.hlopg.presentation.components
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -28,7 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -43,16 +45,19 @@ fun CompactPGCard(
     modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = modifier.clickable { },
+        modifier = modifier
+            .height(230.dp)
+            .clickable { },
         shape = RoundedCornerShape(14.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
-        Column {
+        Column(modifier = Modifier.fillMaxSize()) {
+            // Image Section
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(130.dp)
+                    .height(120.dp)
             ) {
                 Box(
                     modifier = Modifier
@@ -65,15 +70,16 @@ fun CompactPGCard(
                         tint = Color.Gray.copy(alpha = 0.3f),
                         modifier = Modifier
                             .align(Alignment.Center)
-                            .size(50.dp)
+                            .size(40.dp)
                     )
                 }
 
+                // Favorite Button
                 Box(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
-                        .padding(10.dp)
-                        .size(32.dp)
+                        .padding(8.dp)
+                        .size(28.dp)
                         .clip(CircleShape)
                         .background(Color.White.copy(alpha = 0.9f))
                         .clickable { },
@@ -83,30 +89,43 @@ fun CompactPGCard(
                         imageVector = Icons.Outlined.FavoriteBorder,
                         contentDescription = null,
                         tint = Color(0xFF7556FF),
-                        modifier = Modifier.size(18.dp)
+                        modifier = Modifier.size(16.dp)
                     )
                 }
 
+                // Badge
                 Box(
                     modifier = Modifier
                         .align(Alignment.TopStart)
-                        .padding(10.dp)
+                        .padding(8.dp)
                         .clip(RoundedCornerShape(6.dp))
-                        .background(badgeColor.copy(alpha = 0.9f))
+                        .background(badgeColor)
                         .padding(horizontal = 8.dp, vertical = 3.dp)
                 ) {
-                    Text(badge, color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.SemiBold)
+                    Text(
+                        text = badge,
+                        color = Color.White,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
                 }
             }
 
-            Column(modifier = Modifier.padding(12.dp)) {
+            // Content Section
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(10.dp)
+            ) {
                 Text(
-                    name,
+                    text = name,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.Black,
-                    maxLines = 1
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
+
                 Spacer(Modifier.height(4.dp))
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -118,9 +137,11 @@ fun CompactPGCard(
                     )
                     Spacer(Modifier.width(3.dp))
                     Text(
-                        location,
+                        text = location,
                         fontSize = 12.sp,
-                        color = Color.Gray
+                        color = Color.Gray,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
 
@@ -133,14 +154,14 @@ fun CompactPGCard(
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
-                            Icons.Filled.Star,
-                            null,
+                            imageVector = Icons.Filled.Star,
+                            contentDescription = null,
                             tint = Color(0xFFFFC107),
                             modifier = Modifier.size(14.dp)
                         )
                         Spacer(Modifier.width(3.dp))
                         Text(
-                            "$rating",
+                            text = "$rating",
                             fontSize = 12.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = Color.Black
@@ -148,7 +169,7 @@ fun CompactPGCard(
                     }
 
                     Text(
-                        "₹$price/mo",
+                        text = "₹$price/mo",
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF7556FF)
@@ -157,20 +178,4 @@ fun CompactPGCard(
             }
         }
     }
-}
-
-@Preview
-@Composable
-fun hostelCardPreview() {
-    CompactPGCard(
-        name = "Hostel Name",
-        location = "Location",
-        rating = 3.5,
-        price = 2345,
-        badge = "we",
-        badgeColor = Color.Cyan,
-        modifier = Modifier.width(200.dp)
-    )
-    
-    
 }

@@ -50,6 +50,7 @@ dependencies {
 
 
 
+    implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.security.crypto)
 
     // Core Android dependencies
@@ -81,6 +82,7 @@ dependencies {
     implementation(libs.androidx.compose.foundation.layout)
     implementation(libs.androidx.runtime)
     implementation(libs.foundation)
+    implementation(libs.androidx.foundation.layout)
 
     // Testing dependencies
     testImplementation(libs.junit)
