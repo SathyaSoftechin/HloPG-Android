@@ -25,106 +25,103 @@ fun ProfileScreen() {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF505050))
+            .background(Color(0xFFF6F6F6))
     ) {
-
-
-        Surface(
+        Column(
             modifier = Modifier
-                .fillMaxSize(),
-            shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
-            color = Color.White
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Column(
+            Spacer(Modifier.height(20.dp))
+
+            Text(
+                text = "Account",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black,
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(Modifier.height(20.dp))
+
+            // Avatar + Name
+            Box(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .size(100.dp)
+                    .clip(CircleShape)
+                    .background(Color(0xFFFFEB3B)),
+                contentAlignment = Alignment.Center
             ) {
-                Spacer(Modifier.height(8.dp))
-
-                Text(
-                    text = "Account",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Black,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 24.dp, bottom = 16.dp),
-                    textAlign = TextAlign.Center
-                )
-
-                // 🔹 User Info Card
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(Color(0xFFE3F2FD))
-                        .clickable { }
-                        .padding(12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(40.dp)
-                                .clip(CircleShape)
-                                .background(Color(0xFFFFF59D))
-                        ) {
-                            Icon(
-                                imageVector = Icons.Filled.Person,
-                                contentDescription = null,
-                                tint = Color(0xFF7556FF),
-                                modifier = Modifier
-                                    .align(Alignment.Center)
-                                    .size(24.dp)
-                            )
-                        }
-
-                        Text(
-                            text = "User Name",
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = Color.Black
-                        )
-                    }
-
-                    Icon(
-                        imageVector = Icons.Filled.Edit,
-                        contentDescription = "Edit",
-                        tint = Color(0xFF1976D2),
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-
-                Spacer(Modifier.height(16.dp))
-
-                // 🔹 Menu Items
-                MenuItem(Icons.Filled.Notifications, "Notifications")
-                MenuItem(Icons.Filled.Favorite, "Favourite List")
-                MenuItem(Icons.Filled.CheckCircle, "Booked List")
-                MenuItem(Icons.Filled.CreditCard, "Payment Details")
-                MenuItem(Icons.Filled.Description, "Terms and Conditions")
-                MenuItem(Icons.Filled.Help, "Help and Support")
-                MenuItem(Icons.Filled.Logout, "Logout", iconTint = Color(0xFFFF5252), showArrow = false)
-
-                Spacer(modifier = Modifier.height(30.dp))
-
-                Text(
-                    text = "Version 01",
-                    fontSize = 12.sp,
-                    color = Color.Gray,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 16.dp),
-                    textAlign = TextAlign.Center
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = "Avatar",
+                    tint = Color(0xFF2E7D32),
+                    modifier = Modifier.size(50.dp)
                 )
             }
+
+            Spacer(Modifier.height(8.dp))
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = "John",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black
+                )
+                Icon(
+                    imageVector = Icons.Default.Edit,
+                    contentDescription = "Edit Name",
+                    tint = Color.Gray,
+                    modifier = Modifier
+                        .padding(start = 6.dp)
+                        .size(16.dp)
+                )
+            }
+
+            Spacer(Modifier.height(24.dp))
+
+            // Menu list
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White)
+            ) {
+                Column(
+                    modifier = Modifier.padding(vertical = 8.dp)
+                ) {
+                    MenuItem(Icons.Filled.Notifications, "Notifications")
+                    MenuItem(Icons.Filled.Favorite, "Favourite List")
+                    MenuItem(Icons.Filled.CheckCircle, "Booked List")
+                    MenuItem(Icons.Filled.CreditCard, "Payment Details")
+                    MenuItem(Icons.Filled.Description, "Terms and Conditions")
+                    MenuItem(Icons.Filled.Help, "Help and Support")
+                    Divider(color = Color(0xFFE0E0E0), thickness = 1.dp)
+                    MenuItem(Icons.Filled.Logout, "Logout", iconTint = Color(0xFFFF5252), showArrow = false)
+                }
+            }
+
+            Spacer(Modifier.height(24.dp))
+
+            Text(
+                text = "Version 01",
+                fontSize = 12.sp,
+                color = Color.Gray,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(Modifier.height(60.dp))
         }
+
+        // Bottom Navigation Bar (static)
+        BottomNavigationBar()
     }
 }
 
@@ -140,7 +137,7 @@ fun MenuItem(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(vertical = 14.dp),
+            .padding(horizontal = 20.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
@@ -169,5 +166,21 @@ fun MenuItem(
                 modifier = Modifier.size(20.dp)
             )
         }
+    }
+}
+
+@Composable
+fun BottomNavigationBar() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color.Black)
+            .padding(vertical = 10.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(Icons.Filled.Home, contentDescription = "Home", tint = Color.White, modifier = Modifier.size(24.dp))
+        Icon(Icons.Filled.Bookmark, contentDescription = "Bookings", tint = Color.White, modifier = Modifier.size(24.dp))
+        Icon(Icons.Filled.Person, contentDescription = "Profile", tint = Color.White, modifier = Modifier.size(24.dp))
     }
 }

@@ -41,7 +41,7 @@ fun HomeScreen() {
             ) {
                 // Top spacing for header
                 item {
-                    Spacer(modifier = Modifier.height(200.dp))
+                    Spacer(modifier = Modifier.height(165.dp))
                 }
 
                 // Featured Banner

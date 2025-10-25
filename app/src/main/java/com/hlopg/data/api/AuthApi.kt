@@ -15,7 +15,7 @@ interface AuthApi {
     @POST("api/auth/registeruser")
     suspend fun registerUser(@Body request: RegisterRequest): Response<ApiResponse<User>>
 
-    @POST("api/auth/loginuser")
+    @POST("api/auth/apploginuser")
     suspend fun loginUser(@Body request: LoginRequest): Response<ApiResponse<User>>
 
     @POST("api/auth/verify-otp")

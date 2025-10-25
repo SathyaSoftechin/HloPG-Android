@@ -83,6 +83,8 @@ dependencies {
     implementation(libs.androidx.runtime)
     implementation(libs.foundation)
     implementation(libs.androidx.foundation.layout)
+    implementation(libs.runtime)
+    implementation(libs.androidx.compose.foundation.foundation)
 
     // Testing dependencies
     testImplementation(libs.junit)

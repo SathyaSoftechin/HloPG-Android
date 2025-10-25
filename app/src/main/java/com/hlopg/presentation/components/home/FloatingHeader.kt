@@ -19,6 +19,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
@@ -34,7 +35,7 @@ fun FloatingHeader() {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(160.dp)
+                .height(145.dp)
                 .clip(
                     RoundedCornerShape(
                         bottomStart = 24.dp,
@@ -116,11 +117,7 @@ fun FloatingHeader() {
                     modifier = Modifier.size(18.dp)
                 )
                 Column {
-                    Text(
-                        text = "Current Location",
-                        color = Color.White.copy(alpha = 0.8f),
-                        fontSize = 11.sp
-                    )
+
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Start
@@ -141,7 +138,7 @@ fun FloatingHeader() {
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
             // Floating Search Bar
             Box(
@@ -185,4 +182,11 @@ fun FloatingHeader() {
             }
         }
     }
+}
+
+
+@Preview
+@Composable
+fun BannerPreview() {
+    FloatingHeader()
 }

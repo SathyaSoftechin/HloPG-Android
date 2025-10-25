@@ -8,7 +8,7 @@ import kotlin.jvm.java
 
 object RetrofitInstance {
 
-    const val BASE_URL = "https://yourapi.com/"
+    const val BASE_URL = "http://192.168.0.126:5000/"
     private val client = OkHttpClient.Builder()
         .addInterceptor(HttpLoggingInterceptor().apply {
             level = HttpLoggingInterceptor.Level.BODY
