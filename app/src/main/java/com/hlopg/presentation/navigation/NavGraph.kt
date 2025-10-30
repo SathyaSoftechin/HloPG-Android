@@ -108,6 +108,14 @@ fun NavGraph(navController: NavHostController) {
             )
         }
 
+        composable(Screen.Notifications.route) {
+            NotificationsScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
 //        composable(Screen.Payment.route) {
 //            PaymentScreen(
 //                onPaymentSuccess = {
@@ -117,7 +125,9 @@ fun NavGraph(navController: NavHostController) {
 //            )
 //        }
 
-        composable(Screen.Home.route) { HomeScreen() }
+        composable(Screen.Home.route) {
+            HomeScreen(navController = navController)
+        }
         composable(Screen.Search.route) { PGSearchScreen() }
         composable(Screen.Favorites.route) { FavoritesScreen() }
         composable(Screen.Profile.route) { ProfileScreen() }

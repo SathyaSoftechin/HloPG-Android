@@ -8,6 +8,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -15,13 +17,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.hlopg.presentation.components.CompactPGCard
 import com.hlopg.presentation.components.QuickFilters
 import com.hlopg.presentation.components.home.FeaturedBanner
 import com.hlopg.presentation.components.home.FloatingHeader
+import com.hlopg.presentation.navigation.Screen
 
 @Composable
-fun HomeScreen() {
+fun HomeScreen(navController: NavHostController) {
     var selectedTab by remember { mutableStateOf(0) }
     val listState = rememberLazyListState()
 
@@ -96,7 +101,12 @@ fun HomeScreen() {
             }
 
             // Floating Header with Search
-            FloatingHeader()
+            FloatingHeader(
+                navController = navController,
+                onNotificationClick = {
+                    navController.navigate(Screen.Notifications.route)
+                }
+            )
         }
     }
 }
@@ -246,5 +256,5 @@ fun PremiumPGRow() {
 @Preview(showBackground = true)
 @Composable
 fun PreviewHomeScreen() {
-    HomeScreen()
+    HomeScreen(rememberNavController())
 }

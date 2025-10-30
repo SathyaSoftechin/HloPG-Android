@@ -1,6 +1,5 @@
 package com.hlopg.presentation.components.home
 
-
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -23,9 +22,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
+import com.hlopg.presentation.navigation.Screen
 
 @Composable
-fun FloatingHeader() {
+fun FloatingHeader(navController: NavHostController, onNotificationClick: () -> Unit) { // Add navController parameter
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -90,7 +92,9 @@ fun FloatingHeader() {
                         .size(40.dp)
                         .clip(CircleShape)
                         .background(Color.White.copy(alpha = 0.2f))
-                        .clickable { },
+                        .clickable {
+                            navController.navigate(Screen.Notifications.route)
+                        },
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
@@ -117,7 +121,6 @@ fun FloatingHeader() {
                     modifier = Modifier.size(18.dp)
                 )
                 Column {
-
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Start
@@ -184,9 +187,3 @@ fun FloatingHeader() {
     }
 }
 
-
-@Preview
-@Composable
-fun BannerPreview() {
-    FloatingHeader()
-}
