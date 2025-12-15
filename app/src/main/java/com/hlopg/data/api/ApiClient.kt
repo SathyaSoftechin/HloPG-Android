@@ -4,23 +4,52 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import kotlin.jvm.java
 
 object RetrofitInstance {
 
-    const val BASE_URL = "http://192.168.0.126:5000/"
-    private val client = OkHttpClient.Builder()
-        .addInterceptor(HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BODY
-        })
-        .build()
+    private const val BASE_URL = "https://hlopgbackend.vercel.app/"  // base URL
 
-    val api: AuthApi by lazy {
+    // Logging client
+    private val client: OkHttpClient by lazy {
+        OkHttpClient.Builder()
+            .addInterceptor(HttpLoggingInterceptor().apply {
+                level = HttpLoggingInterceptor.Level.BODY
+            })
+            .build()
+    }
+
+    // Single Retrofit instance
+    private val retrofit: Retrofit by lazy {
         Retrofit.Builder()
             .baseUrl(BASE_URL)
             .client(client)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
-            .create(AuthApi::class.java)
+    }
+
+    // ----- API SERVICES -----
+
+    val authApi: AuthApi by lazy {
+        retrofit.create(AuthApi::class.java)
+    }
+
+    val hostelApi: HostelApi by lazy {
+        retrofit.create(HostelApi::class.java)
+    }
+
+    val foodMenuApi: FoodMenuApi by lazy {
+        retrofit.create(FoodMenuApi::class.java)
+    }
+
+    val bookingApi: BookingApi by lazy {
+        retrofit.create(BookingApi::class.java)
+    }
+
+    val ownerApi: OwnerApi by lazy {
+        retrofit.create(OwnerApi::class.java)
+    }
+
+    val roomsApi: RoomsApi by lazy {
+        retrofit.create(RoomsApi::class.java)
     }
 }

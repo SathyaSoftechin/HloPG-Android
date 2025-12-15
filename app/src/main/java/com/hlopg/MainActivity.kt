@@ -13,7 +13,9 @@ import androidx.navigation.compose.rememberNavController
 import com.hlopg.presentation.navigation.NavGraph
 import com.hlopg.presentation.navigation.Screen
 import com.hlopg.presentation.ui.theme.HloPGTheme
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

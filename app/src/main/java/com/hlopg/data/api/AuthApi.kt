@@ -1,32 +1,64 @@
 package com.hlopg.data.api
 
-import com.hlopg.data.model.ApiResponse
-import com.hlopg.data.model.LoginRequest
-import com.hlopg.data.model.OtpRequest
-import com.hlopg.data.model.RegisterRequest
-import com.hlopg.data.model.User
+import com.hlopg.data.model.*
 import retrofit2.Response
-import retrofit2.http.Body
-import retrofit2.http.GET
-import retrofit2.http.Header
-import retrofit2.http.POST
+import retrofit2.http.*
 
 interface AuthApi {
-    @POST("api/auth/registeruser")
-    suspend fun registerUser(@Body request: RegisterRequest): Response<ApiResponse<User>>
 
-    @POST("api/auth/apploginuser")
-    suspend fun loginUser(@Body request: LoginRequest): Response<ApiResponse<User>>
+    // ================= USER =================
+
+    @POST("api/auth/registeruser")
+    suspend fun registerUser(
+        @Body request: RegisterRequest
+    ): Response<ApiResponse<User>>
+
+    @FormUrlEncoded
+    @POST("api/auth/loginuser")
+    suspend fun loginUser(
+        @Field("email") email: String,
+        @Field("password") password: String
+    ): Response<ApiResponse<User>>
 
     @POST("api/auth/verify-otp")
-    suspend fun verifyOtp(@Body request: OtpRequest): Response<ApiResponse<User>>
+    suspend fun verifyOtp(
+        @Body request: OtpRequest
+    ): Response<ApiResponse<User>>
 
     @POST("api/auth/resend-otp")
-    suspend fun resendOtp(@Body request: Map<String, String>): Response<ApiResponse<Any>>
+    suspend fun resendOtp(
+        @Body request: ResendOtpRequest
+    ): Response<ApiResponse<Any>>
 
     @GET("api/auth/user")
-    suspend fun getUser(@Header("Authorization") token: String): Response<ApiResponse<User>>
+    suspend fun getUser(
+        @Header("Authorization") token: String
+    ): Response<ApiResponse<User>>
 
     @GET("api/auth/userid")
-    suspend fun getUserDashboard(@Header("Authorization") token: String): Response<ApiResponse<Any>>
+    suspend fun getUserDashboard(
+        @Header("Authorization") token: String
+    ): Response<ApiResponse<Any>>
+
+    // ================= OWNER =================
+
+    @POST("api/auth/registerowner")
+    suspend fun registerOwner(
+        @Body request: RegisterOwnerRequest
+    ): Response<ApiResponse<Owner>>
+
+    @POST("api/auth/loginowner")
+    suspend fun loginOwner(
+        @Body request: LoginRequest
+    ): Response<ApiResponse<Owner>>
+
+    @GET("api/auth/owner")
+    suspend fun getOwner(
+        @Header("Authorization") token: String
+    ): Response<ApiResponse<Owner>>
+
+    @GET("api/auth/ownerid")
+    suspend fun getOwnerById(
+        @Header("Authorization") token: String
+    ): Response<ApiResponse<Any>>
 }
