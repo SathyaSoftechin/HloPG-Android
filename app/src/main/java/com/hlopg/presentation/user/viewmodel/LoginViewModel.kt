@@ -2,10 +2,10 @@ package com.hlopg.presentation.viewmodel
 
 import android.content.Context
 import android.util.Log
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.hlopg.data.model.ApiResponse
 import com.hlopg.data.model.LoginRequest
 import com.hlopg.data.model.User
@@ -28,7 +28,7 @@ class LoginViewModel(
                 _loginResult.postValue(Resource.Loading)
 
                 val loginRequest = LoginRequest(
-                    email = emailOrPhone,
+                    identifier = emailOrPhone,
                     password = password
                 )
 
@@ -75,7 +75,7 @@ class LoginViewModelLegacy : ViewModel() {
                 )
 
                 val loginRequest = LoginRequest(
-                    email = emailOrPhone,
+                    identifier = emailOrPhone,
                     password = password
                 )
 
@@ -87,11 +87,12 @@ class LoginViewModelLegacy : ViewModel() {
 
                         // Create ApiResponse for backward compatibility
                         val apiResponse = ApiResponse(
-                            success = true,
                             message = "Login successful",
                             data = result.data,
-                            token = null // Token is handled in repository
+                            token = null,
+                            user = result.data
                         )
+
 
                         _loginResult.postValue(Result.success(apiResponse))
                     }

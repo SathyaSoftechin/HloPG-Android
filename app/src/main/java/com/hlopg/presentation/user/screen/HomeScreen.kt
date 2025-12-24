@@ -17,7 +17,6 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.hlopg.presentation.components.ModernPGCard
-import com.hlopg.presentation.components.CompactPGCard
 import com.hlopg.presentation.components.QuickFilters
 import com.hlopg.presentation.components.home.FeaturedBanner
 import com.hlopg.presentation.components.home.FloatingHeader

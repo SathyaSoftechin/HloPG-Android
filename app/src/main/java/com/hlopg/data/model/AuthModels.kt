@@ -1,7 +1,7 @@
 package com.hlopg.data.model
 
 data class LoginRequest(
-    val email: String,
+    val identifier: String,
     val password: String
 )
 
@@ -16,7 +16,8 @@ data class RegisterRequest(
 
 data class OtpRequest(
     val identifier: String,
-    val otp: String
+    val otp_code: String,
+    val purpose: String = "register"
 )
 
 data class ResendOtpRequest(
@@ -34,10 +35,12 @@ data class RegisterOwnerRequest(
 )
 
 data class ApiResponse<T>(
-    val success: Boolean,
-    val message: String,
+    val message: String?,
     val data: T? = null,
-    val token: String? = null
+    val token: String? = null,
+    val user: T? = null
 )
+
+
 
 

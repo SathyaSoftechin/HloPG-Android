@@ -9,9 +9,11 @@ sealed class Screen(val route: String) {
     object Setnewpass : Screen("setnewpass")
     object Forgotpass : Screen("forgotpass")
     object Payment : Screen("payment")
+    object PaymentDetails : Screen("paymentdetails")
     object Home : Screen("home")
     object Search : Screen("search")
     object Favorites : Screen("favorites")
+    object BookedList : Screen("bookedlist")
 
     object Terms : Screen("terms_and_conditions")
     object Help : Screen("help_and_support")

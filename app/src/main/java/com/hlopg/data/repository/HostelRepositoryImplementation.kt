@@ -1,89 +1,93 @@
 package com.hlopg.data.repository
 
-import com.hlopg.data.api.RetrofitInstance
+import com.hlopg.data.api.HostelApi
+import com.hlopg.data.model.ApiResponse
 import com.hlopg.data.model.Hostel
 import com.hlopg.domain.mapper.HostelMapper.toDomain
 import com.hlopg.domain.repository.HostelRepository
 import com.hlopg.domain.repository.Resource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import retrofit2.Response
 import javax.inject.Inject
-
 class HostelRepositoryImpl @Inject constructor(
-    // ideally inject HostelApi instead of using RetrofitInstance directly
-    // private val api: HostelApi
+    private val api: HostelApi
 ) : HostelRepository {
 
-    override suspend fun getPopularHostels(): Resource<List<Hostel>> {
-        return withContext(Dispatchers.IO) {
+    override suspend fun getPopularHostels(): Resource<List<Hostel>> =
+        withContext(Dispatchers.IO) {
             try {
-                // Returns List<HostelDto>
-                val dtoList = RetrofitInstance.hostelApi.getPopularHostels()
-                // Map to List<Hostel>
-                val hostels = dtoList.map { it.toDomain() }
-                Resource.Success(hostels)
+                val dtoList = api.getPopularHostels() // List<HostelDto>
+                Resource.Success(dtoList.map { it.toDomain() })
             } catch (e: Exception) {
-                Resource.Error(e.message ?: "An error occurred while fetching popular hostels")
+                Resource.Error(e.message ?: "Failed to fetch popular hostels")
             }
+        }
+
+    override suspend fun getHyderabadHostels(): Resource<List<Hostel>> =
+        withContext(Dispatchers.IO) {
+            try {
+                val dtoList = api.getHyderabadHostels()
+                Resource.Success(dtoList.map { it.toDomain() })
+            } catch (e: Exception) {
+                Resource.Error(e.message ?: "Failed to fetch Hyderabad hostels")
+            }
+        }
+
+    override suspend fun getChennaiHostels(): Resource<List<Hostel>> =
+        withContext(Dispatchers.IO) {
+            try {
+                val dtoList = api.getChennaiHostels()
+                Resource.Success(dtoList.map { it.toDomain() })
+            } catch (e: Exception) {
+                Resource.Error(e.message ?: "Failed to fetch Chennai hostels")
+            }
+        }
+
+    override suspend fun getBangaloreHostels(): Resource<List<Hostel>> =
+        withContext(Dispatchers.IO) {
+            try {
+                val dtoList = api.getBangaloreHostels()
+                Resource.Success(dtoList.map { it.toDomain() })
+            } catch (e: Exception) {
+                Resource.Error(e.message ?: "Failed to fetch Bangalore hostels")
+            }
+        }
+
+
+    override suspend fun getHostelById(hostelId: String): Resource<Hostel> =
+        safeApiCall(
+            apiCall = { api.getHostelById(hostelId) },
+            mapper = { it.toDomain() }
+        )
+
+    private suspend fun <T, R> safeApiCall(
+        apiCall: suspend () -> Response<ApiResponse<T>>,
+        mapper: (T) -> R
+    ): Resource<R> = withContext(Dispatchers.IO) {
+        try {
+            handleApiResponse(apiCall(), mapper)
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
         }
     }
 
-    override suspend fun getHyderabadHostels(): Resource<List<Hostel>> {
-        return withContext(Dispatchers.IO) {
-            try {
-                val dtoList = RetrofitInstance.hostelApi.getHyderabadHostels()
-                val hostels = dtoList.map { it.toDomain() }
-                Resource.Success(hostels)
-            } catch (e: Exception) {
-                Resource.Error(e.message ?: "An error occurred while fetching Hyderabad hostels")
-            }
+    private fun <T, R> handleApiResponse(
+        response: Response<ApiResponse<T>>,
+        mapper: (T) -> R
+    ): Resource<R> {
+
+        if (!response.isSuccessful) {
+            return Resource.Error("Error ${response.code()}")
         }
-    }
 
-    override suspend fun getChennaiHostels(): Resource<List<Hostel>> {
-        return withContext(Dispatchers.IO) {
-            try {
-                val dtoList = RetrofitInstance.hostelApi.getChennaiHostels()
-                val hostels = dtoList.map { it.toDomain() }
-                Resource.Success(hostels)
-            } catch (e: Exception) {
-                Resource.Error(e.message ?: "An error occurred while fetching Chennai hostels")
-            }
-        }
-    }
+        val body = response.body()
+        val payload = body?.data ?: body?.user
 
-    override suspend fun getBangaloreHostels(): Resource<List<Hostel>> {
-        return withContext(Dispatchers.IO) {
-            try {
-                val dtoList = RetrofitInstance.hostelApi.getBangaloreHostels()
-                val hostels = dtoList.map { it.toDomain() }
-                Resource.Success(hostels)
-            } catch (e: Exception) {
-                Resource.Error(e.message ?: "An error occurred while fetching Bangalore hostels")
-            }
-        }
-    }
-
-    override suspend fun getHostelById(hostelId: Int): Resource<Hostel> {
-        return withContext(Dispatchers.IO) {
-            try {
-                val response = RetrofitInstance.hostelApi.getHostelById(hostelId)
-
-                if (response.isSuccessful) {
-                    val body = response.body()
-
-                    val hostel = body?.data
-                    if (body?.success == true && hostel != null) {
-                        Resource.Success(hostel)
-                    } else {
-                        Resource.Error("Failed to fetch hostel details")
-                    }
-                } else {
-                    Resource.Error("Failed to fetch hostel details (code: ${response.code()})")
-                }
-            } catch (e: Exception) {
-                Resource.Error(e.message ?: "An error occurred while fetching hostel details")
-            }
+        return if (payload != null) {
+            Resource.Success(mapper(payload))
+        } else {
+            Resource.Error(body?.message ?: "Unknown error")
         }
     }
 }

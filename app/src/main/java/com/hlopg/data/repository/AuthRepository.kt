@@ -1,15 +1,19 @@
 package com.hlopg.data.repository
 
 import com.hlopg.data.api.AuthApi
-import com.hlopg.data.model.*
+import com.hlopg.data.model.ApiResponse
+import com.hlopg.data.model.LoginRequest
+import com.hlopg.data.model.OtpRequest
+import com.hlopg.data.model.RegisterRequest
+import com.hlopg.data.model.User
 import com.hlopg.domain.repository.Resource
 import com.hlopg.utils.TokenManager
-import jakarta.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import retrofit2.Response
+import javax.inject.Inject
 
 class AuthRepository @Inject constructor(
     private val api: AuthApi,
@@ -24,10 +28,7 @@ class AuthRepository @Inject constructor(
     suspend fun loginUser(req: LoginRequest): Resource<User> {
         return withContext(Dispatchers.IO) {
             try {
-                val response = api.loginUser(
-                    email = req.email,
-                    password = req.password
-                )
+                val response = api.loginUser(req)
                 handleApiResponse(response)
             } catch (e: Exception) {
                 Resource.Error(e.message ?: "Login failed")
@@ -35,24 +36,9 @@ class AuthRepository @Inject constructor(
         }
     }
 
-
     suspend fun verifyOtp(req: OtpRequest): Resource<User> =
         safeApiCall {
             api.verifyOtp(req)
-        }
-
-    suspend fun resendOtp(req: ResendOtpRequest): Resource<String> =
-        withContext(Dispatchers.IO) {
-            try {
-                val response = api.resendOtp(req)
-                if (response.isSuccessful && response.body()?.success == true) {
-                    Resource.Success(response.body()?.message ?: "OTP sent")
-                } else {
-                    Resource.Error(response.body()?.message ?: "Failed to resend OTP")
-                }
-            } catch (e: Exception) {
-                Resource.Error(e.message ?: "Failed to resend OTP")
-            }
         }
 
     suspend fun getUser(): Resource<User> =
@@ -88,28 +74,22 @@ class AuthRepository @Inject constructor(
         }
     }
 
-    private fun <T> handleApiResponse(
+    private suspend fun <T> handleApiResponse(
         response: Response<ApiResponse<T>>
     ): Resource<T> {
         return if (response.isSuccessful) {
             val body = response.body()
-            if (body?.success == true && body.data != null) {
-                Resource.Success(body.data)
+
+            if (body?.user != null) {
+                body.token?.let { tokenManager.saveToken(it) }
+                Resource.Success(body.user)
             } else {
-                Resource.Error(body?.message ?: "Unknown error occurred")
+                Resource.Error(body?.message ?: "Unknown error")
             }
+
         } else {
             val errorBody = response.errorBody()?.string()
-            val errorMessage = when {
-                !errorBody.isNullOrEmpty() -> errorBody
-                response.code() == 400 -> "Bad request"
-                response.code() == 401 -> "Invalid credentials"
-                response.code() == 403 -> "Forbidden"
-                response.code() == 404 -> "Not found"
-                response.code() == 500 -> "Server error"
-                else -> "Error ${response.code()}"
-            }
-            Resource.Error(errorMessage)
+            Resource.Error(errorBody ?: "Error ${response.code()}")
         }
     }
 }

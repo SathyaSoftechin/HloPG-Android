@@ -1,8 +1,15 @@
 package com.hlopg.data.api
 
-import com.hlopg.data.model.*
+import com.hlopg.data.model.AddHostelRequest
+import com.hlopg.data.model.ApiResponse
+import com.hlopg.data.model.HostelDto
+import com.hlopg.data.model.UpdateHostelRequest
 import retrofit2.Response
-import retrofit2.http.*
+import retrofit2.http.Body
+import retrofit2.http.GET
+import retrofit2.http.POST
+import retrofit2.http.PUT
+import retrofit2.http.Path
 
 interface HostelApi {
 
@@ -12,7 +19,6 @@ interface HostelApi {
 
     @GET("api/hostel/hydhostels")
     suspend fun getHyderabadHostels(): List<HostelDto>
-
     @GET("api/hostel/chehostels")
     suspend fun getChennaiHostels(): List<HostelDto>
 
@@ -25,17 +31,18 @@ interface HostelApi {
 
     @GET("api/hostel/{hostel_id}")
     suspend fun getHostelById(
-        @Path("hostel_id") hostelId: Int
-    ): Response<ApiResponse<Hostel>>
+        @Path("hostel_id") hostelId: String
+    ): Response<ApiResponse<HostelDto>>
+
 
     @POST("api/hostel/addhostel")
     suspend fun addHostel(
         @Body request: AddHostelRequest
-    ): Response<ApiResponse<Hostel>>
+    ): Response<ApiResponse<HostelDto>>
 
     @PUT("api/hostel/{hostel_id}")
     suspend fun updateHostel(
         @Path("hostel_id") hostelId: Int,
         @Body request: UpdateHostelRequest
-    ): Response<ApiResponse<Hostel>>
+    ): Response<ApiResponse<HostelDto>>
 }

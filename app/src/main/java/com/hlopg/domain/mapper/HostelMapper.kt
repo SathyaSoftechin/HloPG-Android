@@ -7,26 +7,23 @@ import com.hlopg.presentation.components.PGDetails
 object HostelMapper {
 
     fun Hostel.toPGDetails(): PGDetails {
+        val amenitiesCount =
+            listOf(pgInfo, furnish, foodMenu)
+                .count { !it.isNullOrBlank() } +
+                    (sharing?.size ?: 0) +
+                    if (!rules.isNullOrEmpty()) 1 else 0
+
         return PGDetails(
             id = id.toString(),
             name = pgName,
-            // e.g. "Madhapur, Hyderabad"
             location = listOfNotNull(area, city).joinToString(", "),
-            // You don't have rating in Hostel model -> default for now
-            rating = 0.0,
-            // Use pgType as the badge text (Boys/Girls/Co-living/etc.)
+            rating = rating,
             badge = pgType,
-            // No price in Hostel -> you can change this once you add price
-            price = 0,
-            // Example: count how many optional features are present
-            amenitiesCount = listOf(pgInfo, rules, furnish, sharing, foodMenu)
-                .count { !it.isNullOrBlank() },
-            // No imageUrl in Hostel -> null for now
+            price = price.toInt(),
+            amenitiesCount = amenitiesCount,
             imageUrl = null,
             imageRes = null,
-            // No favorite info in Hostel -> default
             isFavorite = false,
-            // Color based on pgType
             badgeColor = getBadgeColor(pgType)
         )
     }
@@ -35,30 +32,32 @@ object HostelMapper {
         Hostel(
             id = hostel_id.toInt(),
             pgName = hostel_name,
-            pgInfo = null, // or from another field
+            pgInfo = null,
             pgType = pg_type,
             address = address,
             area = area,
             city = city,
-            state = "",    // backend doesn’t send state in the snippet
+            state = "",
             pincode = "",
-            rules = rules?.joinToString(", "),
+            rules = rules,
             ownerId = owner_id.toInt(),
             furnish = null,
-            sharing = sharing?.entries
-                ?.joinToString(", ") { (k, v) -> "$k:$v" },
-            foodMenu = null
+            sharing = sharing,
+            foodMenu = null,
+            rating = rating.toDoubleOrNull() ?: 0.0,
+            price = price.toDoubleOrNull() ?: 0.0,
+            amenities = amenities,
+            popular = popular
         )
-
 
     private fun getBadgeColor(pgType: String): Long {
         return when (pgType.lowercase()) {
-            "boys", "men" -> 0xFF3508FF // Blue
-            "girls", "women" -> 0xFFFF06C1 // Pink
-            "co-living", "coliving" -> 0xFF08B64F // Purple
-            "premium" -> 0xFFFFD700 // Gold
-            "executive" -> 0xFFFF9800 // Orange
-            else -> 0xFF4CAF50 // Green
+            "boys", "men" -> 0xFF3508FF
+            "girls", "women" -> 0xFFFF06C1
+            "co-living", "coliving" -> 0xFF08B64F
+            "premium" -> 0xFFFFD700
+            "executive" -> 0xFFFF9800
+            else -> 0xFF4CAF50
         }
     }
 

@@ -30,8 +30,6 @@ import com.hlopg.data.model.NotificationIcon
 import com.hlopg.data.model.NotificationItem
 import com.hlopg.presentation.viewmodel.NotificationsViewModel
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.ui.test.isOn
 
 
 @OptIn(ExperimentalMaterial3Api::class)

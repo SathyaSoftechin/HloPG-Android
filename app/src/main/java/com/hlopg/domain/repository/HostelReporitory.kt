@@ -8,6 +8,5 @@ interface HostelRepository {
     suspend fun getHyderabadHostels(): Resource<List<Hostel>>
     suspend fun getChennaiHostels(): Resource<List<Hostel>>
     suspend fun getBangaloreHostels(): Resource<List<Hostel>>
-    suspend fun getHostelById(hostelId: Int): Resource<Hostel>
-
+    suspend fun getHostelById(hostelId: String): Resource<Hostel>
 }

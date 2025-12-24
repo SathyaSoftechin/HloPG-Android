@@ -59,7 +59,7 @@ object ValidationUtils {
     fun validatePassword(password: String): ValidationResult {
         return when {
             password.isEmpty() -> ValidationResult(false, "Password cannot be empty")
-            password.length < 8 -> ValidationResult(false, "Password must be at least 8 characters")
+            password.length < 3 -> ValidationResult(false, "Password must be at least 3 characters")
             !password.any { it.isUpperCase() } -> ValidationResult(false, "Password must contain at least one uppercase letter")
             !password.any { it.isLowerCase() } -> ValidationResult(false, "Password must contain at least one lowercase letter")
             !password.any { it.isDigit() } -> ValidationResult(false, "Password must contain at least one digit")
@@ -167,7 +167,7 @@ object ValidationUtils {
             return ValidationResult(false, "Password cannot be empty")
         }
 
-        if (password.length < 8) {
+        if (password.length < 3) {
             return ValidationResult(false, "Password must be at least 8 characters")
         }
 

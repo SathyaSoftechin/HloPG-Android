@@ -1,5 +1,6 @@
-package com.hlopg.presentation.screen
+package com.hlopg.presentation.user.screen
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -10,30 +11,92 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.hlopg.domain.repository.Resource
+import com.hlopg.presentation.user.viewmodel.OTPViewModel
 import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OTPVerificationScreen(
     phoneNumber: String = "+91 9012345678",
+    purpose: String = "register", // "register", "login", "reset_password"
     onBackClick: () -> Unit = {},
-    onOTPComplete: (String) -> Unit = {},
-    onResendClick: () -> Unit = {}
+    onOTPVerified: () -> Unit = {},
+    viewModel: OTPViewModel = viewModel()
 ) {
+    val context = LocalContext.current
     var otpValues by remember { mutableStateOf(List(4) { "" }) }
     val focusRequesters = remember { List(4) { FocusRequester() } }
     var timeLeft by remember { mutableStateOf(59) }
+    var isResending by remember { mutableStateOf(false) }
+
+    // Observe ViewModel states
+    val otpResult by viewModel.otpResult.observeAsState()
+    val resendResult by viewModel.resendResult.observeAsState()
+
+    // Set phone number in ViewModel
+    LaunchedEffect(phoneNumber) {
+        viewModel.setPhoneNumber(phoneNumber)
+    }
+
+    // Handle OTP verification result
+    LaunchedEffect(otpResult) {
+        when (otpResult) {
+            is Resource.Success -> {
+                Toast.makeText(context, "OTP verified successfully!", Toast.LENGTH_SHORT).show()
+                onOTPVerified()
+            }
+            is Resource.Error -> {
+                val errorMessage = (otpResult as Resource.Error).message
+                Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
+                // Clear OTP fields on error
+                otpValues = List(4) { "" }
+                focusRequesters[0].requestFocus()
+            }
+            is Resource.Loading -> {
+                // Show loading indicator (handled by CircularProgressIndicator)
+            }
+            null -> {
+                // Initial state
+            }
+        }
+    }
+
+    // Handle resend OTP result
+    LaunchedEffect(resendResult) {
+        when (resendResult) {
+            is Resource.Success -> {
+                Toast.makeText(context, "OTP sent successfully!", Toast.LENGTH_SHORT).show()
+                isResending = false
+                timeLeft = 59 // Reset timer
+            }
+            is Resource.Error -> {
+                val errorMessage = (resendResult as Resource.Error).message
+                Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
+                isResending = false
+            }
+            is Resource.Loading -> {
+                isResending = true
+            }
+            null -> {
+                // Initial state
+            }
+        }
+    }
 
     // Timer countdown
     LaunchedEffect(key1 = timeLeft) {
@@ -114,11 +177,14 @@ fun OTPVerificationScreen(
                                         otpValues = newOtpValues
 
                                         // Move to next box
-                                        if (newValue.isNotEmpty() && index < 3) focusRequesters[index + 1].requestFocus()
+                                        if (newValue.isNotEmpty() && index < 3) {
+                                            focusRequesters[index + 1].requestFocus()
+                                        }
 
-                                        // Complete OTP
+                                        // Complete OTP and verify
                                         if (newOtpValues.all { it.isNotEmpty() }) {
-                                            onOTPComplete(newOtpValues.joinToString(""))
+                                            val otp = newOtpValues.joinToString("")
+                                            viewModel.verifyOTP(phoneNumber, otp, purpose)
                                         }
                                     }
                                 },
@@ -127,9 +193,19 @@ fun OTPVerificationScreen(
                                     if (value.isEmpty() && index > 0) {
                                         focusRequesters[index - 1].requestFocus()
                                     }
-                                }
+                                },
+                                enabled = otpResult !is Resource.Loading
                             )
                         }
+                    }
+
+                    // Loading indicator
+                    if (otpResult is Resource.Loading) {
+                        Spacer(modifier = Modifier.height(16.dp))
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            color = MaterialTheme.colorScheme.primary
+                        )
                     }
 
                     Spacer(modifier = Modifier.height(8.dp))
@@ -140,7 +216,7 @@ fun OTPVerificationScreen(
                         horizontalArrangement = Arrangement.End
                     ) {
                         Text(
-                            text = "1:${timeLeft.toString().padStart(2, '0')}",
+                            text = if (timeLeft > 0) "0:${timeLeft.toString().padStart(2, '0')}" else "0:00",
                             fontSize = 11.sp,
                             color = MaterialTheme.colorScheme.primary.copy(alpha = 0.9f)
                         )
@@ -149,14 +225,41 @@ fun OTPVerificationScreen(
                     Spacer(modifier = Modifier.height(16.dp))
 
                     // Resend OTP
-                    TextButton(onClick = onResendClick) {
-                        Text(
-                            text = "Resend OTP",
-                            fontSize = 13.sp,
-                            color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.Medium
-                        )
+                    TextButton(
+                        onClick = {
+                            if (timeLeft == 0) {
+                                viewModel.resendOTP(phoneNumber, purpose)
+                            }
+                        },
+                        enabled = timeLeft == 0 && !isResending
+                    ) {
+                        if (isResending) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(16.dp),
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        } else {
+                            Text(
+                                text = if (timeLeft == 0) "Resend OTP" else "Resend OTP (${timeLeft}s)",
+                                fontSize = 13.sp,
+                                color = if (timeLeft == 0)
+                                    MaterialTheme.colorScheme.primary
+                                else
+                                    Color.Gray,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
                     }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // Instructions
+                    Text(
+                        text = "Enter the 4-digit code sent to your phone",
+                        fontSize = 11.sp,
+                        color = Color.Gray,
+                        textAlign = TextAlign.Center
+                    )
                 }
             }
 
@@ -175,14 +278,10 @@ fun OTPInputBox(
     value: String,
     onValueChange: (String) -> Unit,
     focusRequester: FocusRequester,
-    onBackspace: () -> Unit
+    onBackspace: () -> Unit,
+    enabled: Boolean = true
 ) {
-    BasicTextField(
-        value = value,
-        onValueChange = { newValue ->
-            if (newValue.isEmpty()) onBackspace()
-            onValueChange(newValue)
-        },
+    Box(
         modifier = Modifier
             .size(50.dp)
             .border(
@@ -190,17 +289,38 @@ fun OTPInputBox(
                 color = if (value.isEmpty()) Color(0xFFE0E0E0) else MaterialTheme.colorScheme.primary,
                 shape = RoundedCornerShape(8.dp)
             )
-            .background(Color.White, RoundedCornerShape(8.dp))
-            .focusRequester(focusRequester),
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
-        singleLine = true,
-        textStyle = LocalTextStyle.current.copy(
-            fontSize = 20.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = Color.Black,
-            textAlign = TextAlign.Center
+            .background(Color.White, RoundedCornerShape(8.dp)),
+        contentAlignment = Alignment.Center
+    ) {
+        BasicTextField(
+            value = value,
+            onValueChange = { newValue ->
+                if (newValue.isEmpty()) onBackspace()
+                onValueChange(newValue)
+            },
+            modifier = Modifier
+                .fillMaxSize()
+                .focusRequester(focusRequester)
+                .padding(4.dp),
+            enabled = enabled,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+            singleLine = true,
+            textStyle = LocalTextStyle.current.copy(
+                fontSize = 20.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = Color.Black,
+                textAlign = TextAlign.Center
+            ),
+            decorationBox = { innerTextField ->
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    innerTextField()
+                }
+            }
         )
-    )
+    }
 }
 
 @Preview(showBackground = true, showSystemUi = true)

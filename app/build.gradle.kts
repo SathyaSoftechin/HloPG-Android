@@ -1,3 +1,4 @@
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -6,6 +7,11 @@ plugins {
     // Hilt
     alias(libs.plugins.hilt.android)
     kotlin("kapt")
+}
+
+// ✅ Force JDK 17 toolchain
+kotlin {
+    jvmToolchain(17)
 }
 
 android {
@@ -32,19 +38,21 @@ android {
         }
     }
 
-    // ✅ JDK 21 compatible (use 17 for Android bytecode)
+    // ✅ JDK 17 compatible
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = "17"
-    }
-
     buildFeatures {
         compose = true
     }
+}
+
+// ✅ Kapt configuration for Hilt
+kapt {
+    correctErrorTypes = true
+    useBuildCache = true
 }
 
 dependencies {
@@ -58,6 +66,8 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.0")
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.8.0")
     implementation(libs.androidx.lifecycle.viewmodel.compose)
+
+    implementation("androidx.compose.runtime:runtime-livedata:1.7.5")
 
     /* ---------------- Networking ---------------- */
     implementation("com.squareup.retrofit2:retrofit:2.11.0")
@@ -85,6 +95,8 @@ dependencies {
 
     /* ---------------- Hilt ---------------- */
     implementation(libs.hilt.android)
+    implementation(libs.androidx.compose.foundation.foundation2)
+    implementation(libs.androidx.compose.animation.core)
     kapt(libs.hilt.compiler)
     implementation(libs.hilt.navigation.compose)
 
@@ -93,10 +105,7 @@ dependencies {
 
     /* ---------------- Android Tests ---------------- */
     androidTestImplementation(libs.androidx.junit)
-
-    // ✅ Compose-compatible Espresso
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.0")
-
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
 

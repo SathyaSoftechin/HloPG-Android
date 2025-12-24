@@ -1,8 +1,18 @@
 package com.hlopg.data.api
 
-import com.hlopg.data.model.*
+import com.hlopg.data.model.ApiResponse
+import com.hlopg.data.model.LoginRequest
+import com.hlopg.data.model.OtpRequest
+import com.hlopg.data.model.Owner
+import com.hlopg.data.model.RegisterOwnerRequest
+import com.hlopg.data.model.RegisterRequest
+import com.hlopg.data.model.ResendOtpRequest
+import com.hlopg.data.model.User
 import retrofit2.Response
-import retrofit2.http.*
+import retrofit2.http.Body
+import retrofit2.http.GET
+import retrofit2.http.Header
+import retrofit2.http.POST
 
 interface AuthApi {
 
@@ -13,11 +23,10 @@ interface AuthApi {
         @Body request: RegisterRequest
     ): Response<ApiResponse<User>>
 
-    @FormUrlEncoded
-    @POST("api/auth/loginuser")
+
+    @POST("api/auth/apploginuser")
     suspend fun loginUser(
-        @Field("email") email: String,
-        @Field("password") password: String
+        @Body request: LoginRequest
     ): Response<ApiResponse<User>>
 
     @POST("api/auth/verify-otp")

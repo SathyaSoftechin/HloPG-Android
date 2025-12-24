@@ -10,11 +10,15 @@ data class Hostel(
     val city: String,
     val state: String,
     val pincode: String,
-    val rules: String?,
+    val rules: List<String>?,
     val ownerId: Int,
     val furnish: String?,
-    val sharing: String?, // if multiple, you can use List<Int>
-    val foodMenu: String? // or a structured object
+    val sharing: Map<String, Int>?,
+    val foodMenu: String?,
+    val rating: Double,
+    val price: Double,
+    val amenities: Map<String, Boolean>?,
+    val popular: Int
 )
 
 // Network DTO (you can adapt field names / types)
@@ -25,17 +29,15 @@ data class HostelDto(
     val area: String,
     val address: String,
     val rating: String,
-    val amenities: Map<String, Boolean>?, // or a dedicated data class
+    val amenities: Map<String, Boolean>?,
     val rules: List<String>?,
     val price: String,
     val owner_id: String,
     val popular: Int,
-    val sharing: Map<String, Int>?,      // or a data class
+    val sharing: Map<String, Int>?,
     val pg_type: String,
     val created_at: String
 )
-
-
 
 // Add hostel
 data class AddHostelRequest(
@@ -53,6 +55,27 @@ data class AddHostelRequest(
     val sharing: String,
     val foodMenu: String
 )
+
+data class PGDetailUiState(
+    val id: String,
+    val name: String,
+    val address: String?,          // 🔹 nullable (UI uses ?.let)
+    val description: String,
+    val images: List<String>,
+    val sharing: Map<String, Int>,
+    val amenities: List<String>,
+    val amenitiesCount: Int,       // 🔹 required by UI
+    val rules: List<String>,
+    val foodMenu: String,
+    val rating: Double,
+    val price: Int,
+    val badge: String,
+    val badgeColor: Long           // 🔹 required by UI
+)
+
+
+
+
 
 // Update hostel: dynamic keys, but we can still model as data class,
 // or use Map<String, Any>. Here we use a flexible model.
