@@ -1,4 +1,4 @@
-package com.hlopg
+package com.hlopg.app
 
 import BottomNavBar
 import android.os.Bundle

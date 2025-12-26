@@ -9,7 +9,6 @@ plugins {
     kotlin("kapt")
 }
 
-// ✅ Force JDK 17 toolchain
 kotlin {
     jvmToolchain(17)
 }

@@ -6,7 +6,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
-        android:name=".HlopgApplication"
+        android:name=".app.HlopgApplication"
         android:usesCleartextTraffic="true"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -18,7 +18,7 @@
         android:theme="@style/Theme.HloPG">
 
         <activity
-            android:name=".MainActivity"
+            android:name=".app.MainActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.HloPG">
