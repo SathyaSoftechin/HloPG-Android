@@ -1,4 +1,4 @@
-package com.hlopg.presentation.screen
+package com.hlopg.presentation.admin.screen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -19,15 +19,14 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Help
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.outlined.Favorite
+import androidx.compose.material.icons.outlined.Hotel
+import androidx.compose.material.icons.outlined.List
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -54,8 +53,8 @@ import androidx.compose.ui.window.Dialog
 import coil.compose.AsyncImage
 import com.hlopg.app.Screen
 
-// Data Models
-data class UserProfile(
+// Data Models for AdminProfileScreen (separate from ViewModel's UI state)
+data class AdminProfileData(
     val id: String,
     val name: String,
     val email: String? = null,
@@ -63,7 +62,7 @@ data class UserProfile(
     val phone: String? = null
 )
 
-data class MenuItem(
+data class AdminMenuItem(
     val id: String,
     val icon: ImageVector,
     val title: String,
@@ -73,62 +72,54 @@ data class MenuItem(
     val onClick: () -> Unit = {}
 )
 
-sealed class ProfileUiState {
-    object Loading : ProfileUiState()
-    data class Success(val user: UserProfile) : ProfileUiState()
-    data class Error(val message: String) : ProfileUiState()
-}
-
 @Composable
-fun ProfileScreen(
+fun AdminProfileScreen(
     onNavigate: (String) -> Unit = {}
 ) {
     var showLogoutDialog by remember { mutableStateOf(false) }
 
-    var demoUser by remember {
+    var demoAdmin by remember {
         mutableStateOf(
-            UserProfile(
+            AdminProfileData(
                 id = "1",
-                name = "John",
-                email = "john@example.com",
+                name = "Admin",
+                email = "admin@example.com",
                 avatarUrl = null
             )
         )
     }
 
-    val menuItems = remember(onNavigate) {
+    val adminMenuItems = remember(onNavigate) {
         listOf(
-            MenuItem(
+            AdminMenuItem(
                 id = "notifications",
                 icon = Icons.Outlined.Notifications,
-                title = "Notifications",
+                title = "Notification",
                 onClick = { onNavigate(Screen.Notifications.route) }
             ),
-            MenuItem(
-                id = "favorites",
-                icon = Icons.Outlined.Favorite,
-                title = "Favourite List",
-                onClick = { onNavigate(Screen.Favorites.route) }
+            AdminMenuItem(
+                id = "myrooms",
+                icon = Icons.Outlined.Hotel,
+                title = "My Rooms",
+                onClick = {
+                    //onNavigate(Screen.MyRooms.route)
+                }
             ),
-            MenuItem(
-                id = "bookings",
-                icon = Icons.Filled.CheckCircle,
-                title = "Booked List",
-                onClick = { onNavigate(Screen.BookedList.route) }
+            AdminMenuItem(
+                id = "editpgs",
+                icon = Icons.Outlined.List,
+                title = "Edit PG's List",
+                onClick = {
+                    //onNavigate(Screen.EditPGsList.route)
+                }
             ),
-            MenuItem(
-                id = "payment",
-                icon = Icons.Filled.CreditCard,
-                title = "Payment Details",
-                onClick = { onNavigate(Screen.PaymentDetails.route) }
-            ),
-            MenuItem(
+            AdminMenuItem(
                 id = "terms",
                 icon = Icons.Filled.Info,
                 title = "Terms and Conditions",
                 onClick = { onNavigate(Screen.Terms.route) }
             ),
-            MenuItem(
+            AdminMenuItem(
                 id = "help",
                 icon = Icons.Filled.Help,
                 title = "Help and Support",
@@ -138,11 +129,11 @@ fun ProfileScreen(
     }
 
     if (showLogoutDialog) {
-        LogoutConfirmationDialog(
+        AdminLogoutConfirmationDialog(
             onDismiss = { showLogoutDialog = false },
             onConfirm = {
                 showLogoutDialog = false
-                // Clear user session and navigate to login
+                // Clear admin session and navigate to login
                 onNavigate(Screen.Login.route)
             }
         )
@@ -171,16 +162,16 @@ fun ProfileScreen(
 
             Spacer(Modifier.height(32.dp))
 
-            ProfileAvatar(
-                avatarUrl = demoUser.avatarUrl,
-                name = demoUser.name
+            AdminProfileAvatar(
+                avatarUrl = demoAdmin.avatarUrl,
+                name = demoAdmin.name
             )
 
             Spacer(Modifier.height(12.dp))
 
-            ProfileName(
-                name = demoUser.name,
-                onEdit = { onNavigate(Screen.EditProfileScreen.route) }
+            AdminProfileName(
+                name = demoAdmin.name,
+                onEdit = { onNavigate(Screen.EditAdminProfileScreen.route) }
             )
 
             Spacer(Modifier.height(32.dp))
@@ -191,11 +182,11 @@ fun ProfileScreen(
                     .padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                menuItems.forEach { item ->
-                    MenuItemCard(item = item)
+                adminMenuItems.forEach { item ->
+                    AdminMenuItemCard(item = item)
                 }
 
-                LogoutCard(onLogout = { showLogoutDialog = true })
+                AdminLogoutCard(onLogout = { showLogoutDialog = true })
             }
 
             Spacer(Modifier.height(24.dp))
@@ -212,7 +203,7 @@ fun ProfileScreen(
 }
 
 @Composable
-private fun LogoutConfirmationDialog(
+private fun AdminLogoutConfirmationDialog(
     onDismiss: () -> Unit,
     onConfirm: () -> Unit
 ) {
@@ -303,7 +294,7 @@ private fun LogoutConfirmationDialog(
 }
 
 @Composable
-private fun ProfileAvatar(
+private fun AdminProfileAvatar(
     avatarUrl: String?,
     name: String,
     modifier: Modifier = Modifier
@@ -319,14 +310,14 @@ private fun ProfileAvatar(
         if (avatarUrl != null) {
             AsyncImage(
                 model = avatarUrl,
-                contentDescription = "Profile Avatar",
+                contentDescription = "Admin Profile Avatar",
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop
             )
         } else {
             Icon(
                 imageVector = Icons.Default.Person,
-                contentDescription = "Default Avatar",
+                contentDescription = "Default Admin Avatar",
                 tint = Color(0xFF2E7D32),
                 modifier = Modifier.size(60.dp)
             )
@@ -335,7 +326,7 @@ private fun ProfileAvatar(
 }
 
 @Composable
-private fun ProfileName(
+private fun AdminProfileName(
     name: String,
     onEdit: () -> Unit,
     modifier: Modifier = Modifier
@@ -362,8 +353,8 @@ private fun ProfileName(
 }
 
 @Composable
-private fun MenuItemCard(
-    item: MenuItem,
+private fun AdminMenuItemCard(
+    item: AdminMenuItem,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -414,7 +405,7 @@ private fun MenuItemCard(
 }
 
 @Composable
-private fun LogoutCard(
+private fun AdminLogoutCard(
     onLogout: () -> Unit,
     modifier: Modifier = Modifier
 ) {

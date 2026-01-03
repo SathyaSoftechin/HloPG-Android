@@ -37,7 +37,8 @@ import com.hlopg.presentation.user.viewmodel.FavoritesViewModel
 @Composable
 fun FavoritesScreen(
     viewModel: FavoritesViewModel = hiltViewModel(),
-    onPGClick: (String) -> Unit = {}
+    onPGClick: (String) -> Unit = {},
+    onBackClick: () -> Boolean
 ) {
     val uiState by viewModel.uiState.collectAsState()
 

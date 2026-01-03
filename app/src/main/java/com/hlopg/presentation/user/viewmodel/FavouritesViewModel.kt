@@ -8,7 +8,11 @@ import com.hlopg.domain.repository.HostelRepository
 import com.hlopg.domain.repository.Resource
 import com.hlopg.presentation.components.PGDetails
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -47,7 +51,7 @@ class FavoritesViewModel @Inject constructor(
             _isLoading.value = true
             when (val result = hostelRepository.getPopularHostels()) {
                 is Resource.Success -> {
-                    _allPGs.value = result.data.toPGDetailsList()
+                    _allPGs.value = result.data?.toPGDetailsList()!!
                     _error.value = null
                 }
                 is Resource.Error -> _error.value = result.message

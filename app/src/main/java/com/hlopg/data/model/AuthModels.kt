@@ -1,5 +1,7 @@
 package com.hlopg.data.model
 
+import com.google.gson.annotations.SerializedName
+
 data class LoginRequest(
     val identifier: String,
     val password: String
@@ -20,9 +22,17 @@ data class OtpRequest(
     val purpose: String = "register"
 )
 
+//data class ResendOtpRequest(
+//    val identifier: String,
+//    val purpose: String
+//)
+
 data class ResendOtpRequest(
-    val identifier: String,
-    val purpose: String
+    @SerializedName("identifier")
+    val identifier: String,  // phone number or email
+
+    @SerializedName("purpose")
+    val purpose: String = "register"  // "register" or "reset_password"
 )
 
 

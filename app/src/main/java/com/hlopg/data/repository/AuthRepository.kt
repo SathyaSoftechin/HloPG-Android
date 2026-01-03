@@ -5,6 +5,7 @@ import com.hlopg.data.model.ApiResponse
 import com.hlopg.data.model.LoginRequest
 import com.hlopg.data.model.OtpRequest
 import com.hlopg.data.model.RegisterRequest
+import com.hlopg.data.model.ResendOtpRequest
 import com.hlopg.data.model.User
 import com.hlopg.domain.repository.Resource
 import com.hlopg.utils.TokenManager
@@ -40,6 +41,27 @@ class AuthRepository @Inject constructor(
         safeApiCall {
             api.verifyOtp(req)
         }
+
+    suspend fun resendOtp(req: ResendOtpRequest): Resource<String> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val response = api.resendOtp(req)
+                if (response.isSuccessful) {
+                    val body = response.body()
+                    if (body != null) {
+                        Resource.Success(body.message ?: "OTP sent successfully")
+                    } else {
+                        Resource.Error("Unknown error")
+                    }
+                } else {
+                    val errorBody = response.errorBody()?.string()
+                    Resource.Error(errorBody ?: "Error ${response.code()}")
+                }
+            } catch (e: Exception) {
+                Resource.Error(e.message ?: "Failed to resend OTP")
+            }
+        }
+    }
 
     suspend fun getUser(): Resource<User> =
         withContext(Dispatchers.IO) {
@@ -81,8 +103,14 @@ class AuthRepository @Inject constructor(
             val body = response.body()
 
             if (body?.user != null) {
+                // Save token to TokenManager
                 body.token?.let { tokenManager.saveToken(it) }
-                Resource.Success(body.user)
+
+                // Return success with BOTH user data AND token
+                Resource.Success(
+                    data = body.user,
+                    token = body.token  // ← Include token in Resource
+                )
             } else {
                 Resource.Error(body?.message ?: "Unknown error")
             }

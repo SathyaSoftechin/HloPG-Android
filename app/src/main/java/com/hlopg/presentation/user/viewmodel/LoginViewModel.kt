@@ -11,21 +11,31 @@ import com.hlopg.data.model.LoginRequest
 import com.hlopg.data.model.User
 import com.hlopg.data.repository.AuthRepository
 import com.hlopg.domain.repository.Resource
+import com.hlopg.utils.SessionManager
 import com.hlopg.utils.TokenManager
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class LoginViewModel(
-    private val repository: AuthRepository
+@HiltViewModel
+class LoginViewModel @Inject constructor(
+    private val repository: AuthRepository,
+    private val sessionManager: SessionManager,
+    private val tokenManager: TokenManager
 ) : ViewModel() {
 
-    private val _loginResult = MutableLiveData<Resource<User>>()
-    val loginResult: LiveData<Resource<User>> = _loginResult
+    private val _loginResult = MutableLiveData<Result<ApiResponse<User>>>()
+    val loginResult: LiveData<Result<ApiResponse<User>>> = _loginResult
 
-    fun login(emailOrPhone: String, password: String) {
+    fun login(
+        emailOrPhone: String,
+        password: String,
+        onSuccess: (String) -> Unit,  // Returns user_type
+        onError: (String) -> Unit
+    ) {
         viewModelScope.launch {
             try {
                 Log.d("LoginViewModel", "Starting login request")
-                _loginResult.postValue(Resource.Loading)
 
                 val loginRequest = LoginRequest(
                     identifier = emailOrPhone,
@@ -36,27 +46,66 @@ class LoginViewModel(
 
                 when (result) {
                     is Resource.Success -> {
+                        val userData = result.data
+                        val token = result.token ?: ""
+
                         Log.d("LoginViewModel", "Login success")
-                        _loginResult.postValue(result)
+                        Log.d("LoginViewModel", "User ID: ${userData?.id}")
+                        Log.d("LoginViewModel", "User Name: ${userData?.name}")
+                        Log.d("LoginViewModel", "User Type: ${userData?.userType}")
+                        Log.d("LoginViewModel", "Token: ${token.take(20)}...")
+
+                        // Session is already saved in ViewModel, so we save it here too
+                        if (userData != null) {
+                            sessionManager.saveLoginSession(
+                                userId = (userData.id ?: "").toString(),
+                                userName = userData.name ?: "",
+                                userEmail = userData.email ?: "",
+                                userPhone = userData.phone ?: emailOrPhone,
+                                userType = userData.userType ?: "user",  // "user" or "admin"
+                                authToken = token
+                            )
+
+                            Log.d("LoginViewModel", "Session saved successfully")
+                            Log.d("LoginViewModel", "SessionManager.isAdmin(): ${sessionManager.isAdmin()}")
+                            Log.d("LoginViewModel", "SessionManager.getUserType(): ${sessionManager.getUserType()}")
+                        }
+
+                        // Create ApiResponse for backward compatibility
+                        val apiResponse = ApiResponse(
+                            message = "Login successful",
+                            data = userData,
+                            token = token,
+                            user = userData
+                        )
+
+                        _loginResult.postValue(Result.success(apiResponse))
+
+                        // Return user type for navigation
+                        val userType = userData?.userType ?: "user"
+                        onSuccess(userType)
+
                     }
                     is Resource.Error -> {
                         Log.e("LoginViewModel", "Login failed: ${result.message}")
-                        _loginResult.postValue(result)
+                        _loginResult.postValue(Result.failure(Exception(result.message)))
+                        onError(result.message ?: "Login failed")
                     }
                     is Resource.Loading -> {
-                        // Already handled above
+                        Log.d("LoginViewModel", "Login loading...")
                     }
                 }
 
             } catch (e: Exception) {
                 Log.e("LoginViewModel", "Exception during login", e)
-                _loginResult.postValue(Resource.Error(e.message ?: "Login failed"))
+                _loginResult.postValue(Result.failure(e))
+                onError(e.message ?: "An error occurred")
             }
         }
     }
 }
 
-// Alternative constructor for backward compatibility (if not using DI)
+// Legacy ViewModel for backward compatibility (without Hilt)
 class LoginViewModelLegacy : ViewModel() {
 
     private val _loginResult = MutableLiveData<Result<ApiResponse<User>>>()
@@ -67,8 +116,9 @@ class LoginViewModelLegacy : ViewModel() {
             try {
                 Log.d("LoginViewModel", "Starting login request")
 
-                // Create repository instance (not ideal, use DI in production)
+                // Create instances (not ideal, use DI in production)
                 val tokenManager = TokenManager(context)
+                val sessionManager = SessionManager(context)
                 val repository = AuthRepository(
                     api = com.hlopg.data.api.RetrofitInstance.authApi,
                     tokenManager = tokenManager
@@ -83,25 +133,48 @@ class LoginViewModelLegacy : ViewModel() {
 
                 when (result) {
                     is Resource.Success -> {
+                        val userData = result.data
+                        val token = result.token ?: ""
+
                         Log.d("LoginViewModel", "Login success")
+                        Log.d("LoginViewModel", "User ID: ${userData?.id}")
+                        Log.d("LoginViewModel", "User Name: ${userData?.name}")
+                        Log.d("LoginViewModel", "User Type: ${userData?.userType}")
+                        Log.d("LoginViewModel", "Token: ${token.take(20)}...")
+
+                        // Save session to SessionManager
+                        if (userData != null) {
+                            sessionManager.saveLoginSession(
+                                userId = (userData.id ?: "").toString(),
+                                userName = userData.name ?: "",
+                                userEmail = userData.email ?: "",
+                                userPhone = userData.phone ?: emailOrPhone,
+                                userType = userData.userType ?: "user",  // "user" or "admin"
+                                authToken = token
+                            )
+
+                            Log.d("LoginViewModel", "Session saved successfully")
+                            Log.d("LoginViewModel", "SessionManager.isAdmin(): ${sessionManager.isAdmin()}")
+                            Log.d("LoginViewModel", "SessionManager.getUserType(): ${sessionManager.getUserType()}")
+                        }
 
                         // Create ApiResponse for backward compatibility
                         val apiResponse = ApiResponse(
                             message = "Login successful",
-                            data = result.data,
-                            token = null,
-                            user = result.data
+                            data = userData,
+                            token = token,
+                            user = userData
                         )
 
-
                         _loginResult.postValue(Result.success(apiResponse))
+
                     }
                     is Resource.Error -> {
                         Log.e("LoginViewModel", "Login failed: ${result.message}")
                         _loginResult.postValue(Result.failure(Exception(result.message)))
                     }
                     is Resource.Loading -> {
-                        // Loading state
+                        Log.d("LoginViewModel", "Login loading...")
                     }
                 }
 

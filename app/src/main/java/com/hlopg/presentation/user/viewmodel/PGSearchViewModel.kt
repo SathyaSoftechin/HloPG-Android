@@ -10,7 +10,10 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -62,7 +65,7 @@ class PGSearchViewModel @Inject constructor(
             // Wait for popular hostels (main data source)
             when (val result = popularDeferred.await()) {
                 is Resource.Success -> {
-                    allPGsList.addAll(result.data.toPGDetailsList())
+                    result.data?.let { allPGsList.addAll(it.toPGDetailsList()) }
                 }
                 is Resource.Error -> {
                     hasError = true
@@ -74,7 +77,7 @@ class PGSearchViewModel @Inject constructor(
             // Wait for Hyderabad hostels
             when (val result = hyderabadDeferred.await()) {
                 is Resource.Success -> {
-                    allPGsList.addAll(result.data.toPGDetailsList())
+                    result.data?.let { allPGsList.addAll(it.toPGDetailsList()) }
                 }
                 is Resource.Error -> {
                     if (!hasError) {
@@ -87,7 +90,7 @@ class PGSearchViewModel @Inject constructor(
             // Wait for Chennai hostels
             when (val result = chennaiDeferred.await()) {
                 is Resource.Success -> {
-                    allPGsList.addAll(result.data.toPGDetailsList())
+                    result.data?.let { allPGsList.addAll(it.toPGDetailsList()) }
                 }
                 is Resource.Error -> {
                     if (!hasError) {
@@ -100,7 +103,7 @@ class PGSearchViewModel @Inject constructor(
             // Wait for Bangalore hostels
             when (val result = bangaloreDeferred.await()) {
                 is Resource.Success -> {
-                    allPGsList.addAll(result.data.toPGDetailsList())
+                    result.data?.let { allPGsList.addAll(it.toPGDetailsList()) }
                 }
                 is Resource.Error -> {
                     if (!hasError) {
@@ -171,7 +174,7 @@ class PGSearchViewModel @Inject constructor(
 
             when (result) {
                 is Resource.Success -> {
-                    val pgs = result.data.toPGDetailsList()
+                    val pgs = result.data!!.toPGDetailsList()
                     _uiState.update {
                         it.copy(
                             allPGs = pgs,

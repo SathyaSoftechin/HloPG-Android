@@ -150,7 +150,7 @@ class HomeViewModel @Inject constructor(
     private suspend fun loadRecommendedPGs() {
         when (val result = repository.getPopularHostels()) {
             is Resource.Success -> {
-                _recommendedRaw.value = result.data.toPGDetailsList()
+                _recommendedRaw.value = result.data?.toPGDetailsList()!!
                 _isLoading.value = false
             }
             is Resource.Error -> {
@@ -166,7 +166,7 @@ class HomeViewModel @Inject constructor(
     private suspend fun loadPopularPGs() {
         when (val result = repository.getHyderabadHostels()) {
             is Resource.Success -> {
-                _popularRaw.value = result.data.toPGDetailsList()
+                _popularRaw.value = result.data?.toPGDetailsList()!!
             }
             is Resource.Error -> {
                 _error.value = result.message
@@ -178,7 +178,7 @@ class HomeViewModel @Inject constructor(
     private suspend fun loadNewlyAddedPGs() {
         when (val result = repository.getChennaiHostels()) {
             is Resource.Success -> {
-                _newlyAddedRaw.value = result.data.toPGDetailsList()
+                _newlyAddedRaw.value = result.data?.toPGDetailsList()!!
             }
             is Resource.Error -> {
                 _error.value = result.message
@@ -190,7 +190,7 @@ class HomeViewModel @Inject constructor(
     private suspend fun loadPremiumPGs() {
         when (val result = repository.getBangaloreHostels()) {
             is Resource.Success -> {
-                _premiumRaw.value = result.data.toPGDetailsList()
+                _premiumRaw.value = result.data?.toPGDetailsList()!!
             }
             is Resource.Error -> {
                 _error.value = result.message
