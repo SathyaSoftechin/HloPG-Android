@@ -76,9 +76,9 @@ fun AdminBottomNavBar(
             // CENTER ADD BUTTON
             Box(
                 modifier = Modifier
-                    .size(54.dp)
-                    .clip(CircleShape)
-                    .background(Color(0xFF7556FF))
+                    .size(46.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color(0xFF4E4E4E))
                     .clickable {
                         //onNavigate(Screen.AddPG.route) // safe even if screen not ready
                     },
@@ -87,7 +87,7 @@ fun AdminBottomNavBar(
                 Icon(
                     imageVector = Icons.Default.Add,
                     contentDescription = "Add New PG",
-                    tint = Color.White,
+                    tint = Color.White.copy((0.9f)),
                     modifier = Modifier.size(28.dp)
                 )
             }

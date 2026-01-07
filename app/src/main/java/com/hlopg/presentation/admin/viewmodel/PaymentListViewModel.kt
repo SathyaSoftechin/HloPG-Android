@@ -2,6 +2,8 @@ package com.hlopg.presentation.admin.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.hlopg.utils.getCurrentMonth
+import com.hlopg.utils.getPreviousMonth
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -9,7 +11,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
-import java.util.Calendar
 import java.util.Locale
 import javax.inject.Inject
 
@@ -56,74 +57,85 @@ data class PaymentsUiState(
     val isLoading: Boolean = false,
     val error: String? = null,
     val payments: List<PaymentDetails> = emptyList(),
+
+    // Month based
     val selectedMonth: MonthOption = MonthOption("This Month", getCurrentMonth()),
     val availableMonths: List<MonthOption> = emptyList(),
+    val showMonthPicker: Boolean = false,
+
+    // Date range based
+    val selectedDateRange: String = "This Month",
+    val startDateMillis: Long? = null,
+    val endDateMillis: Long? = null,
+    val showDateRangePicker: Boolean = false,
+
     val totalAmount: Int = 0,
     val successCount: Int = 0,
-    val pendingCount: Int = 0,
-    val showMonthPicker: Boolean = false
+    val pendingCount: Int = 0
 )
 
-// ==================== VIEWMODEL ====================
 
+// ==================== VIEWMODEL ====================
 @HiltViewModel
-class PaymentsViewModel @Inject constructor(
-    // TODO: Inject your use cases here
-    // private val getPaymentsUseCase: GetPaymentsUseCase,
-    // private val getAvailableMonthsUseCase: GetAvailableMonthsUseCase,
-    // private val exportPaymentsUseCase: ExportPaymentsUseCase,
-    // private val sessionManager: SessionManager
-) : ViewModel() {
+class PaymentsViewModel @Inject constructor() : ViewModel() {
 
     private val _uiState = MutableStateFlow(PaymentsUiState())
     val uiState: StateFlow<PaymentsUiState> = _uiState.asStateFlow()
+
+    private val dateFormatter = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
 
     init {
         loadAvailableMonths()
         loadPayments()
     }
 
+    // ==================== LOADERS ====================
+
     private fun loadAvailableMonths() {
         viewModelScope.launch {
-            try {
-                // TODO: Replace with actual API call
-                // val months = getAvailableMonthsUseCase.execute()
-
-                val months = generateMonthOptions()
-                _uiState.update { it.copy(availableMonths = months) }
-            } catch (e: Exception) {
-                // Handle error silently or log
+            _uiState.update {
+                it.copy(availableMonths = generateMonthOptions())
             }
         }
     }
 
-    fun loadPayments(month: String? = null) {
+    fun loadPayments(
+        startDate: Long? = null,
+        endDate: Long? = null,
+        month: String? = null
+    ) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
 
             try {
-                // TODO: Replace with actual API call
-                // val payments = getPaymentsUseCase.execute(
-                //     month = month ?: uiState.value.selectedMonth.value
-                // )
+                val allPayments = generateMockPayments()
 
-                // Mock data for demonstration
-                val mockPayments = generateMockPayments()
+                val filteredPayments = when {
+                    startDate != null && endDate != null -> {
+                        allPayments.filter {
+                            val paymentMillis = parseDate(it.paymentDate)
+                            paymentMillis in startDate..endDate
+                        }
+                    }
 
-                val totalAmount = mockPayments
+                    month != null -> {
+                        allPayments // TODO: filter by month when API ready
+                    }
+
+                    else -> allPayments
+                }
+
+                val totalAmount = filteredPayments
                     .filter { it.status == PaymentStatus.SUCCESS }
                     .sumOf { it.amount }
-
-                val successCount = mockPayments.count { it.status == PaymentStatus.SUCCESS }
-                val pendingCount = mockPayments.count { it.status == PaymentStatus.PENDING }
 
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        payments = mockPayments,
+                        payments = filteredPayments,
                         totalAmount = totalAmount,
-                        successCount = successCount,
-                        pendingCount = pendingCount
+                        successCount = filteredPayments.count { p -> p.status == PaymentStatus.SUCCESS },
+                        pendingCount = filteredPayments.count { p -> p.status == PaymentStatus.PENDING }
                     )
                 }
             } catch (e: Exception) {
@@ -137,14 +149,56 @@ class PaymentsViewModel @Inject constructor(
         }
     }
 
+    // ==================== DATE RANGE ====================
+
+    fun toggleDateRangePicker() {
+        _uiState.update { it.copy(showDateRangePicker = !it.showDateRangePicker) }
+    }
+
+    fun dismissDateRangePicker() {
+        _uiState.update { it.copy(showDateRangePicker = false) }
+    }
+
+    fun setDateRange(startDate: Long, endDate: Long) {
+        val startText = dateFormatter.format(startDate)
+        val endText = dateFormatter.format(endDate)
+
+        _uiState.update {
+            it.copy(
+                selectedDateRange = "$startText - $endText",
+                startDateMillis = startDate,
+                endDateMillis = endDate,
+                showDateRangePicker = false
+            )
+        }
+
+        loadPayments(startDate = startDate, endDate = endDate)
+    }
+
+    fun resetDateFilter() {
+        _uiState.update {
+            it.copy(
+                selectedDateRange = "This Month",
+                startDateMillis = null,
+                endDateMillis = null
+            )
+        }
+        loadPayments()
+    }
+
+    // ==================== MONTH PICKER ====================
+
     fun setSelectedMonth(month: MonthOption) {
         _uiState.update {
             it.copy(
                 selectedMonth = month,
-                showMonthPicker = false
+                selectedDateRange = month.displayName,
+                showMonthPicker = false,
+                startDateMillis = null,
+                endDateMillis = null
             )
         }
-        loadPayments(month.value)
+        loadPayments(month = month.value)
     }
 
     fun toggleMonthPicker() {
@@ -155,90 +209,37 @@ class PaymentsViewModel @Inject constructor(
         _uiState.update { it.copy(showMonthPicker = false) }
     }
 
-    fun retry() {
-        loadPayments()
+    // ==================== HELPERS ====================
+
+    private fun parseDate(date: String): Long {
+        return try {
+            SimpleDateFormat("d-M-yyyy", Locale.getDefault())
+                .parse(date)?.time ?: 0L
+        } catch (e: Exception) {
+            0L
+        }
     }
 
-    fun exportPayments() {
-        viewModelScope.launch {
-            try {
-                // TODO: Implement export functionality
-                // exportPaymentsUseCase.execute(uiState.value.payments)
-            } catch (e: Exception) {
-                _uiState.update {
-                    it.copy(error = "Failed to export payments")
-                }
-            }
-        }
+    fun retry() {
+        loadPayments(
+            startDate = uiState.value.startDateMillis,
+            endDate = uiState.value.endDateMillis
+        )
     }
 
     fun clearError() {
         _uiState.update { it.copy(error = null) }
     }
 
-    // ==================== MOCK DATA GENERATORS ====================
+    // ==================== MOCK DATA ====================
 
     private fun generateMockPayments(): List<PaymentDetails> {
         return listOf(
-            PaymentDetails(
-                id = "1",
-                memberName = "Chaitanya Thota",
-                memberId = "M001",
-                sharing = 3,
-                joiningDate = "3-10-2025",
-                amount = 9000,
-                paymentDate = "3-10-2025",
-                paymentMethod = "UPI",
-                transactionId = "TXN001",
-                status = PaymentStatus.SUCCESS
-            ),
-            PaymentDetails(
-                id = "2",
-                memberName = "Rajesh Kumar",
-                memberId = "M002",
-                sharing = 2,
-                joiningDate = "5-10-2025",
-                amount = 8000,
-                paymentDate = "5-10-2025",
-                paymentMethod = "Card",
-                transactionId = "TXN002",
-                status = PaymentStatus.SUCCESS
-            ),
-            PaymentDetails(
-                id = "3",
-                memberName = "Suresh Reddy",
-                memberId = "M003",
-                sharing = 3,
-                joiningDate = "8-10-2025",
-                amount = 9000,
-                paymentDate = "8-10-2025",
-                paymentMethod = "Cash",
-                status = PaymentStatus.SUCCESS
-            ),
-            PaymentDetails(
-                id = "4",
-                memberName = "Ramesh Verma",
-                memberId = "M004",
-                sharing = 2,
-                joiningDate = "10-10-2025",
-                amount = 8000,
-                paymentDate = "10-10-2025",
-                paymentMethod = "UPI",
-                transactionId = "TXN004",
-                status = PaymentStatus.SUCCESS
-            ),
-            PaymentDetails(
-                id = "5",
-                memberName = "Mahesh Singh",
-                memberId = "M005",
-                sharing = 3,
-                joiningDate = "12-10-2025",
-                amount = 9000,
-                paymentDate = "12-10-2025",
-                paymentMethod = "UPI",
-                transactionId = "TXN005",
-                status = PaymentStatus.SUCCESS
-            )
+            PaymentDetails("1", "Chaitanya Thota", "M001", 3, "3-10-2025", 9000, "3-10-2025", "UPI"),
+            PaymentDetails("2", "Rajesh Kumar", "M002", 2, "5-10-2025", 8000, "5-10-2025", "Card"),
+            PaymentDetails("3", "Suresh Reddy", "M003", 3, "8-10-2025", 9000, "8-10-2025", "Cash"),
+            PaymentDetails("4", "Ramesh Verma", "M004", 2, "10-10-2025", 8000, "10-10-2025", "UPI"),
+            PaymentDetails("5", "Mahesh Singh", "M005", 3, "12-10-2025", 9000, "12-10-2025", "UPI")
         )
     }
 
@@ -250,19 +251,4 @@ class PaymentsViewModel @Inject constructor(
             MonthOption("3 Months Ago", getPreviousMonth(3))
         )
     }
-}
-
-// ==================== HELPER FUNCTIONS ====================
-
-fun getCurrentMonth(): String {
-    val calendar = Calendar.getInstance()
-    val dateFormat = SimpleDateFormat("yyyy-MM", Locale.getDefault())
-    return dateFormat.format(calendar.time)
-}
-
-fun getPreviousMonth(monthsAgo: Int): String {
-    val calendar = Calendar.getInstance()
-    calendar.add(Calendar.MONTH, -monthsAgo)
-    val dateFormat = SimpleDateFormat("yyyy-MM", Locale.getDefault())
-    return dateFormat.format(calendar.time)
 }

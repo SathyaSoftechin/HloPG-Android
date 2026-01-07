@@ -58,7 +58,6 @@ fun NavGraphBuilder.adminNavGraph(
         val viewModel: PaymentsViewModel = hiltViewModel()
 
         PaymentsListScreen(
-            navController = navController,
             viewModel = viewModel
         )
     }

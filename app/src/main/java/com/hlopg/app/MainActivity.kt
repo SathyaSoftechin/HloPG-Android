@@ -34,7 +34,7 @@ class MainActivity : ComponentActivity() {
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentRoute = navBackStackEntry?.destination?.route
 
-                val isAdmin = sessionManager.isAdmin()
+                val isAdmin = true //sessionManager.isAdmin()
 
                 // User bottom nav routes
                 val userBottomNavRoutes = listOf(
