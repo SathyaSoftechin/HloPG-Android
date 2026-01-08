@@ -102,7 +102,7 @@ fun AdminProfileScreen(
                 icon = Icons.Outlined.Hotel,
                 title = "My Rooms",
                 onClick = {
-                    //onNavigate(Screen.MyRooms.route)
+                    onNavigate(Screen.RoomManagement.route)
                 }
             ),
             AdminMenuItem(

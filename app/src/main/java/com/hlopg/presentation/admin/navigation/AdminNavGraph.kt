@@ -11,9 +11,13 @@ import com.hlopg.presentation.admin.screen.AdminProfileScreen
 import com.hlopg.presentation.admin.screen.EditAdminProfileScreen
 import com.hlopg.presentation.admin.screen.PGMembersListScreen
 import com.hlopg.presentation.admin.screen.PaymentsListScreen
+import com.hlopg.presentation.admin.screen.UploadPGScreen
+import com.hlopg.presentation.admin.screens.RoomManagementScreen
 import com.hlopg.presentation.admin.viewmodel.AdminDashboardViewModel
 import com.hlopg.presentation.admin.viewmodel.PGMembersViewModel
 import com.hlopg.presentation.admin.viewmodel.PaymentsViewModel
+import com.hlopg.presentation.admin.viewmodel.RoomManagementViewModel
+import com.hlopg.presentation.admin.viewmodel.UploadPGViewModel
 
 /**
  * Admin navigation graph containing all admin-related screens
@@ -71,4 +75,26 @@ fun NavGraphBuilder.adminNavGraph(
             viewModel = viewModel
         )
     }
+
+    // ================= UPLOAD PG =================
+    composable(Screen.UploadPG.route) {
+        val viewModel: UploadPGViewModel = hiltViewModel()
+
+        UploadPGScreen(
+            navController = navController,
+            viewModel = viewModel
+        )
+    }
+
+    // ================= ROOM MANAGEMENT =================
+    composable(Screen.RoomManagement.route) {
+        val viewModel: RoomManagementViewModel = hiltViewModel()
+
+        RoomManagementScreen(
+            navController = navController,
+            viewModel = viewModel
+        )
+    }
+
+
 }

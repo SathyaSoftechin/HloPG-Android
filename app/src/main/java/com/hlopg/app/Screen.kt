@@ -23,7 +23,8 @@ sealed class Screen(val route: String) {
     object AdminProfile : Screen("admin_profile")
     object PaymentList : Screen("payment_list")
     object PGMembersList : Screen("pg_members_list")
-
+    object UploadPG : Screen("upload_pg")
+    object RoomManagement : Screen("room_management")
     object EditAdminProfileScreen : Screen("edit_admin_profile")
 
     // ============= SHARED SCREENS =============

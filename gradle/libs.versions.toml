@@ -35,6 +35,7 @@ uiTest = "1.10.0"
 androidxComposeFoundationFoundation = "1.10.0"
 runtimeLivedataVersion = "1.10.0"
 animationCore = "1.10.0"
+animationVersion = "1.10.0"
 
 
 [libraries]
@@ -81,6 +82,7 @@ androidx-compose-ui-test = { group = "androidx.compose.ui", name = "ui-test", ve
 androidx-compose-foundation-foundation2 = { group = "androidx.compose.foundation", name = "foundation", version.ref = "androidxComposeFoundationFoundation" }
 androidx-runtime-livedata = { group = "androidx.compose.runtime", name = "runtime-livedata", version.ref = "runtimeLivedataVersion" }
 androidx-compose-animation-core = { group = "androidx.compose.animation", name = "animation-core", version.ref = "animationCore" }
+androidx-animation = { group = "androidx.compose.animation", name = "animation", version.ref = "animationVersion" }
 
 
 [plugins]

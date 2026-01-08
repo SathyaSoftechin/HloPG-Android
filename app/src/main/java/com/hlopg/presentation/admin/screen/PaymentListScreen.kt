@@ -138,7 +138,7 @@ fun PaymentsListScreen(
                 .wrapContentHeight()
                 .padding(horizontal = 20.dp)
                 .weight(1f),
-            shape = RoundedCornerShape(16.dp),
+            shape = RoundedCornerShape(10.dp),
             colors = CardDefaults.cardColors(containerColor = Color.White),
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {

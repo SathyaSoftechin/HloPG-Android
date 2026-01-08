@@ -80,7 +80,7 @@ fun AdminBottomNavBar(
                     .clip(RoundedCornerShape(12.dp))
                     .background(Color(0xFF4E4E4E))
                     .clickable {
-                        //onNavigate(Screen.AddPG.route) // safe even if screen not ready
+                        onNavigate(Screen.UploadPG.route) // safe even if screen not ready
                     },
                 contentAlignment = Alignment.Center
             ) {

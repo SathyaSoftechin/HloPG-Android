@@ -56,6 +56,31 @@ data class AddHostelRequest(
     val foodMenu: String
 )
 
+data class HostelUploadRequest(
+    val pgName: String,
+    val pgInfo: String,
+    val pgType: String,
+    val address: String,
+    val area: String,
+    val city: String,
+    val state: String,
+    val pincode: String,
+    val rules: List<String>,
+    val ownerId: Int,
+    val furnish: String,
+    val sharing: Map<String, Int>,
+    val foodMenu: String,
+    val rating: Double,
+    val price: Double,
+    val amenities: Map<String, Boolean>,
+    val popular: Int,
+    val numberOfFloors: Int,
+    val roomsPerFloor: Int,
+    val startingRoomNumber: String,
+    val advanceAmount: Int,
+    val images: List<String>
+)
+
 data class PGDetailUiState(
     val id: String,
     val name: String,
