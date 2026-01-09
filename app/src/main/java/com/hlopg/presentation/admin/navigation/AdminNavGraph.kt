@@ -6,7 +6,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import com.hlopg.app.Screen
-import com.hlopg.presentation.admin.AdminDashboardScreen
+import com.hlopg.presentation.admin.screen.AdminDashboardScreen
 import com.hlopg.presentation.admin.screen.AdminProfileScreen
 import com.hlopg.presentation.admin.screen.EditAdminProfileScreen
 import com.hlopg.presentation.admin.screen.PGMembersListScreen

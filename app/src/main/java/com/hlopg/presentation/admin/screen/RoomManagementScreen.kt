@@ -1,5 +1,12 @@
 package com.hlopg.presentation.admin.screens
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -13,22 +20,35 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -39,13 +59,14 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -53,6 +74,19 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.hlopg.presentation.admin.viewmodel.RoomData
 import com.hlopg.presentation.admin.viewmodel.RoomManagementViewModel
+import kotlinx.coroutines.launch
+
+// Color scheme for bed states
+object BedColors {
+    val Available = Color(0xFF4CAF50) // Green
+    val Occupied = Color(0xFFF44336) // Red
+    val Maintenance = Color(0xFFFF9800) // Orange
+    val Reserved = Color(0xFF2196F3) // Blue
+}
+
+enum class RoomFilter {
+    ALL, AVAILABLE, FULL, PARTIAL, EMPTY
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -77,15 +111,24 @@ fun RoomManagementScreen(
     }
 
     val roomsState by viewModel.roomsState.collectAsState()
+    val statistics by viewModel.statisticsState.collectAsState()
     val floors = viewModel.getAllFloors()
-    var showValidationError by remember { mutableStateOf<String?>(null) }
+
+    var searchQuery by remember { mutableStateOf("") }
+    var selectedFilter by remember { mutableStateOf(RoomFilter.ALL) }
+    var showStatistics by remember { mutableStateOf(true) }
+    var showBulkActions by remember { mutableStateOf(false) }
+    var showFilterMenu by remember { mutableStateOf(false) }
+
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
                     Text(
-                        text = "My Rooms",
+                        text = "Room Management",
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.Black
@@ -100,10 +143,54 @@ fun RoomManagementScreen(
                         )
                     }
                 },
+                actions = {
+                    IconButton(onClick = { showFilterMenu = true }) {
+                        Icon(
+                            imageVector = Icons.Default.FilterList,
+                            contentDescription = "Filter",
+                            tint = Color.Black
+                        )
+                    }
+
+                    DropdownMenu(
+                        expanded = showFilterMenu,
+                        onDismissRequest = { showFilterMenu = false }
+                    ) {
+                        RoomFilter.values().forEach { filter ->
+                            DropdownMenuItem(
+                                text = { Text(filter.name.replace('_', ' ')) },
+                                onClick = {
+                                    selectedFilter = filter
+                                    showFilterMenu = false
+                                }
+                            )
+                        }
+                    }
+
+                    IconButton(onClick = { showStatistics = !showStatistics }) {
+                        Icon(
+                            imageVector = Icons.Default.Info,
+                            contentDescription = "Statistics",
+                            tint = Color.Black
+                        )
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.White
                 )
             )
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { showBulkActions = !showBulkActions },
+                containerColor = MaterialTheme.colorScheme.primary
+            ) {
+                Icon(
+                    imageVector = Icons.Default.CheckCircle,
+                    contentDescription = "Bulk Actions"
+                )
+            }
         }
     ) { paddingValues ->
         LazyColumn(
@@ -114,6 +201,47 @@ fun RoomManagementScreen(
                 .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            // Search Bar
+            item {
+                SearchBar(
+                    query = searchQuery,
+                    onQueryChange = { searchQuery = it }
+                )
+            }
+
+            // Statistics Card
+            if (showStatistics) {
+                item {
+                    StatisticsCard(statistics = statistics)
+                }
+            }
+
+            // Bulk Actions
+            if (showBulkActions) {
+                item {
+                    BulkActionsCard(
+                        onOccupyAll = {
+                            viewModel.occupyAllBeds()
+                            scope.launch {
+                                snackbarHostState.showSnackbar("All beds marked as occupied")
+                            }
+                        },
+                        onFreeAll = {
+                            viewModel.freeAllBeds()
+                            scope.launch {
+                                snackbarHostState.showSnackbar("All beds marked as available")
+                            }
+                        },
+                        onResetAll = {
+                            viewModel.resetAllRoomCapacities()
+                            scope.launch {
+                                snackbarHostState.showSnackbar("All room capacities reset")
+                            }
+                        }
+                    )
+                }
+            }
+
             // Instructions Card
             item {
                 InstructionCard()
@@ -121,49 +249,230 @@ fun RoomManagementScreen(
 
             // Legend
             item {
-                LegendRow()
+                EnhancedLegendRow()
             }
 
-            // Floor sections
+            // Floor sections with filtered rooms
             items(floors) { floorKey ->
-                FloorSection(
-                    floorKey = floorKey,
-                    rooms = viewModel.getRoomsForFloor(floorKey),
-                    onSharingCapacityChange = { roomNumber, capacity ->
-                        viewModel.updateRoomSharingCapacity(floorKey, roomNumber, capacity)
-                    },
-                    onBedClick = { roomNumber, bedNumber ->
-                        viewModel.toggleBedOccupancy(floorKey, roomNumber, bedNumber)
-                    }
+                val floorRooms = viewModel.getRoomsForFloor(floorKey)
+                val filteredRooms = filterRooms(floorRooms, searchQuery, selectedFilter)
+
+                if (filteredRooms.isNotEmpty()) {
+                    FloorSection(
+                        floorKey = floorKey,
+                        rooms = filteredRooms,
+                        onIncreaseBeds = { roomNumber ->
+                            viewModel.increaseBedCapacity(floorKey, roomNumber)
+                        },
+                        onDecreaseBeds = { roomNumber ->
+                            viewModel.decreaseBedCapacity(floorKey, roomNumber)
+                        },
+                        onBedClick = { roomNumber, bedNumber ->
+                            viewModel.toggleBedOccupancy(floorKey, roomNumber, bedNumber)
+                        },
+                        onOccupyAll = { roomNumber ->
+                            viewModel.occupyAllBedsInRoom(floorKey, roomNumber)
+                        },
+                        onFreeAll = { roomNumber ->
+                            viewModel.freeAllBedsInRoom(floorKey, roomNumber)
+                        }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun SearchBar(
+    query: String,
+    onQueryChange: (String) -> Unit
+) {
+    OutlinedTextField(
+        value = query,
+        onValueChange = onQueryChange,
+        modifier = Modifier.fillMaxWidth(),
+        placeholder = { Text("Search rooms...") },
+        leadingIcon = {
+            Icon(Icons.Default.Search, contentDescription = "Search")
+        },
+        singleLine = true,
+        shape = RoundedCornerShape(12.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = MaterialTheme.colorScheme.primary,
+            unfocusedBorderColor = Color(0xFFE0E0E0),
+            focusedContainerColor = Color.White,
+            unfocusedContainerColor = Color.White
+        )
+    )
+}
+
+@Composable
+fun StatisticsCard(statistics: com.hlopg.presentation.admin.viewmodel.RoomStatistics) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text(
+                text = "📊 Overview",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                StatItem(
+                    label = "Total Rooms",
+                    value = statistics.totalRooms.toString(),
+                    color = Color(0xFF2196F3)
+                )
+                StatItem(
+                    label = "Total Beds",
+                    value = statistics.totalBeds.toString(),
+                    color = Color(0xFF9C27B0)
+                )
+                StatItem(
+                    label = "Occupied",
+                    value = statistics.occupiedBeds.toString(),
+                    color = Color(0xFFF44336)
+                )
+                StatItem(
+                    label = "Available",
+                    value = statistics.availableBeds.toString(),
+                    color = Color(0xFF4CAF50)
                 )
             }
 
-            // Show validation error if any
-            showValidationError?.let { error ->
-                item {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = Color(0xFFFFEBEE)
-                        ),
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(12.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = error,
-                                color = Color(0xFFC62828),
-                                fontSize = 13.sp,
-                                modifier = Modifier.weight(1f)
-                            )
-                            TextButton(onClick = { showValidationError = null }) {
-                                Text("OK", color = Color(0xFFC62828))
-                            }
-                        }
-                    }
+            // Occupancy Progress Bar
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "Occupancy Rate",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color.Gray
+                    )
+                    Text(
+                        text = "${String.format("%.1f", statistics.occupancyPercentage)}%",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+
+                val animatedProgress by animateFloatAsState(
+                    targetValue = statistics.occupancyPercentage / 100f,
+                    label = "progress"
+                )
+
+                LinearProgressIndicator(
+                    progress = { animatedProgress },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(8.dp)
+                        .clip(RoundedCornerShape(4.dp)),
+                    color = when {
+                        statistics.occupancyPercentage < 50 -> Color(0xFF4CAF50)
+                        statistics.occupancyPercentage < 80 -> Color(0xFFFF9800)
+                        else -> Color(0xFFF44336)
+                    },
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun StatItem(label: String, value: String, color: Color) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        Text(
+            text = value,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            color = color
+        )
+        Text(
+            text = label,
+            fontSize = 11.sp,
+            color = Color.Gray,
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
+@Composable
+fun BulkActionsCard(
+    onOccupyAll: () -> Unit,
+    onFreeAll: () -> Unit,
+    onResetAll: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFFFFF3E0)
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                text = "⚡ Bulk Actions",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                OutlinedButton(
+                    onClick = onOccupyAll,
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = Color(0xFFF44336)
+                    )
+                ) {
+                    Text("Occupy All", fontSize = 11.sp)
+                }
+
+                OutlinedButton(
+                    onClick = onFreeAll,
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = Color(0xFF4CAF50)
+                    )
+                ) {
+                    Text("Free All", fontSize = 11.sp)
+                }
+
+                OutlinedButton(
+                    onClick = onResetAll,
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = Color(0xFF9E9E9E)
+                    )
+                ) {
+                    Text("Reset All", fontSize = 11.sp)
                 }
             }
         }
@@ -174,13 +483,13 @@ fun RoomManagementScreen(
 fun InstructionCard() {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(8.dp),
+        shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
             containerColor = Color(0xFFE3F2FD)
         )
     ) {
         Text(
-            text = "Enter the sharing capacity for each room. You can update the room occupancy by clicking on the color box. This allows you to easily view the current room status and also hold specific rooms by changing their color.",
+            text = "💡 Use +/- buttons to adjust bed capacity. Tap on bed icons to toggle occupancy status (Available ↔ Occupied). Use room actions for quick operations.",
             modifier = Modifier.padding(12.dp),
             fontSize = 13.sp,
             color = Color.Black,
@@ -190,36 +499,41 @@ fun InstructionCard() {
 }
 
 @Composable
-fun LegendRow() {
-    Row(
+fun EnhancedLegendRow() {
+    Card(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(20.dp)
+        shape = RoundedCornerShape(8.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White
+        )
     ) {
-        LegendItem(
-            color = Color(0xFF4CAF50),
-            label = "Available"
-        )
-        LegendItem(
-            color = Color(0xFFF44336),
-            label = "Filled"
-        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            LegendItem(color = BedColors.Available, label = "Available", icon = "🛏️")
+            LegendItem(color = BedColors.Occupied, label = "Occupied", icon = "🛏️")
+        }
     }
 }
 
 @Composable
-fun LegendItem(color: Color, label: String) {
+fun LegendItem(color: Color, label: String, icon: String) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp)
     ) {
+        Text(text = icon, fontSize = 16.sp)
         Box(
             modifier = Modifier
-                .size(14.dp)
-                .background(color, shape = RoundedCornerShape(50))
+                .size(12.dp)
+                .background(color, shape = CircleShape)
         )
         Text(
             text = label,
-            fontSize = 14.sp,
+            fontSize = 12.sp,
             fontWeight = FontWeight.Medium,
             color = Color.Black
         )
@@ -230,163 +544,342 @@ fun LegendItem(color: Color, label: String) {
 fun FloorSection(
     floorKey: String,
     rooms: List<RoomData>,
-    onSharingCapacityChange: (String, Int) -> Unit,
-    onBedClick: (String, Int) -> Unit
+    onIncreaseBeds: (String) -> Unit,
+    onDecreaseBeds: (String) -> Unit,
+    onBedClick: (String, Int) -> Unit,
+    onOccupyAll: (String) -> Unit,
+    onFreeAll: (String) -> Unit
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // Floor Header with rounded corners
-        Text(
-            text = floorKey,
-            fontSize = 15.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = Color.White,
+        // Floor Header
+        Row(
             modifier = Modifier
+                .fillMaxWidth()
                 .background(
                     color = MaterialTheme.colorScheme.primary,
-                    shape = RoundedCornerShape(6.dp)
+                    shape = RoundedCornerShape(8.dp)
                 )
-                .padding(horizontal = 12.dp, vertical = 6.dp)
-        )
-
-        // Rooms in this floor
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            rooms.forEach { room ->
-                RoomCard(
-                    room = room,
-                    onSharingCapacityChange = { capacity ->
-                        onSharingCapacityChange(room.roomNumber, capacity)
-                    },
-                    onBedClick = { bedNumber ->
-                        onBedClick(room.roomNumber, bedNumber)
-                    },
-                    modifier = Modifier.weight(1f)
-                )
+            Text(
+                text = floorKey,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
+            )
+
+            val floorStats = rooms.let { roomsList ->
+                val total = roomsList.sumOf { it.beds.size }
+                val occupied = roomsList.sumOf { it.occupiedBeds }
+                "$occupied/$total beds"
+            }
+
+            Text(
+                text = floorStats,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium,
+                color = Color.White.copy(alpha = 0.9f)
+            )
+        }
+
+        // Rooms grid
+        Column(
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            rooms.chunked(2).forEach { roomPair ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    roomPair.forEach { room ->
+                        EnhancedRoomCard(
+                            room = room,
+                            onIncreaseBeds = { onIncreaseBeds(room.roomNumber) },
+                            onDecreaseBeds = { onDecreaseBeds(room.roomNumber) },
+                            onBedClick = { bedNumber ->
+                                onBedClick(room.roomNumber, bedNumber)
+                            },
+                            onOccupyAll = { onOccupyAll(room.roomNumber) },
+                            onFreeAll = { onFreeAll(room.roomNumber) },
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                    // Fill remaining space if odd number of rooms
+                    if (roomPair.size == 1) {
+                        Spacer(modifier = Modifier.weight(1f))
+                    }
+                }
             }
         }
     }
 }
 
 @Composable
-fun RoomCard(
+fun EnhancedRoomCard(
     room: RoomData,
-    onSharingCapacityChange: (Int) -> Unit,
+    onIncreaseBeds: () -> Unit,
+    onDecreaseBeds: () -> Unit,
     onBedClick: (Int) -> Unit,
+    onOccupyAll: () -> Unit,
+    onFreeAll: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var sharingInput by remember { mutableStateOf(if (room.sharingCapacity > 0) room.sharingCapacity.toString() else "") }
+    var showActions by remember { mutableStateOf(false) }
 
-    Column(
-        modifier = modifier.padding(2.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(6.dp)
+    val borderColor by animateColorAsState(
+        targetValue = when {
+            room.isFull -> BedColors.Occupied
+            room.isEmpty -> BedColors.Available
+            else -> Color(0xFFFF9800)
+        },
+        label = "border"
+    )
+
+    Card(
+        modifier = modifier,
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        // Room Number
-        Text(
-            text = room.roomNumber,
-            fontSize = 13.sp,
-            fontWeight = FontWeight.SemiBold,
-            textAlign = TextAlign.Center,
-            color = Color.Black
-        )
-
-        // Bed boxes in a grid (max 3 per row)
-        if (room.beds.isNotEmpty()) {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(3.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+        Column(
+            modifier = Modifier.padding(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            // Room Header
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                room.beds.chunked(3).forEach { bedRow ->
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(3.dp)
+                Text(
+                    text = "Room ${room.roomNumber}",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black
+                )
+
+                IconButton(
+                    onClick = { showActions = !showActions },
+                    modifier = Modifier.size(20.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Info,
+                        contentDescription = "Actions",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
+            }
+
+            // Capacity Controls
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(
+                    onClick = onDecreaseBeds,
+                    enabled = room.sharingCapacity > 0,
+                    modifier = Modifier.size(32.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Remove,
+                        contentDescription = "Decrease beds",
+                        tint = if (room.sharingCapacity > 0) Color(0xFFF44336) else Color.Gray,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "${room.sharingCapacity}",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = "beds",
+                        fontSize = 10.sp,
+                        color = Color.Gray
+                    )
+                }
+
+                IconButton(
+                    onClick = onIncreaseBeds,
+                    enabled = room.sharingCapacity < 10,
+                    modifier = Modifier.size(32.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "Increase beds",
+                        tint = if (room.sharingCapacity < 10) Color(0xFF4CAF50) else Color.Gray,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            }
+
+            // Bed Grid with Icons
+            if (room.beds.isNotEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .border(
+                            width = 2.dp,
+                            color = borderColor.copy(alpha = 0.3f),
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                        .padding(8.dp)
+                ) {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(6.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        bedRow.forEach { bed ->
-                            BedBox(
-                                isOccupied = bed.isOccupied,
-                                onClick = { onBedClick(bed.bedNumber) }
-                            )
+                        room.beds.chunked(4).forEach { bedRow ->
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                bedRow.forEach { bed ->
+                                    BedIconButton(
+                                        bedNumber = bed.bedNumber,
+                                        isOccupied = bed.isOccupied,
+                                        onClick = { onBedClick(bed.bedNumber) }
+                                    )
+                                }
+                            }
                         }
                     }
                 }
-            }
-        } else {
-            // Empty space when no beds
-            Spacer(modifier = Modifier.height(24.dp))
-        }
 
-        // Sharing Capacity Input with custom styling
-        OutlinedTextField(
-            value = sharingInput,
-            onValueChange = { newValue ->
-                sharingInput = newValue
-                newValue.toIntOrNull()?.let { capacity ->
-                    if (capacity in 1..10) {
-                        onSharingCapacityChange(capacity)
+                // Bed Status
+                Text(
+                    text = "${room.occupiedBeds}/${room.beds.size} occupied",
+                    fontSize = 11.sp,
+                    color = Color.Gray,
+                    fontWeight = FontWeight.Medium
+                )
+            } else {
+                Text(
+                    text = "No beds configured",
+                    fontSize = 11.sp,
+                    color = Color.Gray,
+                    fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
+                )
+            }
+
+            // Quick Actions
+            AnimatedVisibility(
+                visible = showActions && room.beds.isNotEmpty(),
+                enter = expandVertically() + fadeIn(),
+                exit = shrinkVertically() + fadeOut()
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    TextButton(
+                        onClick = onOccupyAll,
+                        modifier = Modifier.weight(1f),
+                        enabled = !room.isFull
+                    ) {
+                        Text("Fill", fontSize = 10.sp)
+                    }
+
+                    TextButton(
+                        onClick = onFreeAll,
+                        modifier = Modifier.weight(1f),
+                        enabled = !room.isEmpty
+                    ) {
+                        Text("Clear", fontSize = 10.sp)
                     }
                 }
-            },
-            placeholder = {
-                Text(
-                    "Enter Sharing",
-                    fontSize = 10.sp,
-                    color = Color.Gray
-                )
-            },
-            modifier = Modifier
-                .width(75.dp)
-                .height(40.dp),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            singleLine = true,
-            textStyle = TextStyle(
-                fontSize = 11.sp,
-                color = Color.Black
-            ),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                unfocusedBorderColor = Color(0xFFBDBDBD),
-                cursorColor = MaterialTheme.colorScheme.primary,
-                focusedTextColor = Color.Black,
-                unfocusedTextColor = Color.Black
-            ),
-            shape = RoundedCornerShape(4.dp)
-        )
+            }
+        }
     }
 }
 
 @Composable
-fun BedBox(
+fun BedIconButton(
+    bedNumber: Int,
     isOccupied: Boolean,
     onClick: () -> Unit
 ) {
+    val scale by animateFloatAsState(
+        targetValue = if (isOccupied) 0.95f else 1f,
+        label = "scale"
+    )
+
+    val backgroundColor by animateColorAsState(
+        targetValue = if (isOccupied) BedColors.Occupied else BedColors.Available,
+        label = "color"
+    )
+
     Box(
         modifier = Modifier
-            .size(24.dp)
+            .size(40.dp)
+            .scale(scale)
+            .clip(RoundedCornerShape(8.dp))
+            .background(backgroundColor.copy(alpha = 0.2f))
             .border(
-                width = 1.5.dp,
-                color = if (isOccupied) Color(0xFFF44336) else Color(0xFF4CAF50),
-                shape = RoundedCornerShape(3.dp)
+                width = 2.dp,
+                color = backgroundColor,
+                shape = RoundedCornerShape(8.dp)
             )
-            .background(
-                color = Color.White,
-                shape = RoundedCornerShape(3.dp)
-            )
-            .clickable { onClick() },
+            .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
-        // Line indicator (horizontal line like in the image)
-        Box(
-            modifier = Modifier
-                .width(12.dp)
-                .height(2.dp)
-                .background(
-                    color = if (isOccupied) Color(0xFFF44336) else Color(0xFF4CAF50),
-                    shape = RoundedCornerShape(1.dp)
-                )
-        )
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = "🛏️",
+                fontSize = 18.sp
+            )
+            Text(
+                text = bedNumber.toString(),
+                fontSize = 8.sp,
+                fontWeight = FontWeight.Bold,
+                color = backgroundColor
+            )
+        }
     }
+}
+
+// Filter function
+fun filterRooms(
+    rooms: List<RoomData>,
+    searchQuery: String,
+    filter: RoomFilter
+): List<RoomData> {
+    var filtered = rooms
+
+    // Apply search filter
+    if (searchQuery.isNotBlank()) {
+        filtered = filtered.filter {
+            it.roomNumber.contains(searchQuery, ignoreCase = true)
+        }
+    }
+
+    // Apply status filter
+    filtered = when (filter) {
+        RoomFilter.ALL -> filtered
+        RoomFilter.AVAILABLE -> filtered.filter { !it.isFull && it.beds.isNotEmpty() }
+        RoomFilter.FULL -> filtered.filter { it.isFull }
+        RoomFilter.PARTIAL -> filtered.filter {
+            it.beds.isNotEmpty() && !it.isFull && !it.isEmpty
+        }
+        RoomFilter.EMPTY -> filtered.filter { it.isEmpty || it.beds.isEmpty() }
+    }
+
+    return filtered
 }

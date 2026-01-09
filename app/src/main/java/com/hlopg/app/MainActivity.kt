@@ -35,6 +35,7 @@ class MainActivity : ComponentActivity() {
                 val currentRoute = navBackStackEntry?.destination?.route
 
                 val isAdmin = true //sessionManager.isAdmin()
+                val isUser = !sessionManager.isAdmin()
 
                 // User bottom nav routes
                 val userBottomNavRoutes = listOf(
@@ -54,7 +55,7 @@ class MainActivity : ComponentActivity() {
                 val showAdminBottomBar = isAdmin && currentRoute in adminRoutes
 
                 // Show user bottom bar only on user tabs
-                val showUserBottomBar = !isAdmin && currentRoute in userBottomNavRoutes
+                val showUserBottomBar = isUser && currentRoute in userBottomNavRoutes
 
                 // TEMP start destination
                 val startDestination = Screen.AdminHome.route

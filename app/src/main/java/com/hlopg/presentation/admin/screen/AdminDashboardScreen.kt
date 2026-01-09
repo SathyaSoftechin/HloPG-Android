@@ -1,4 +1,4 @@
-package com.hlopg.presentation.admin
+package com.hlopg.presentation.admin.screen
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
