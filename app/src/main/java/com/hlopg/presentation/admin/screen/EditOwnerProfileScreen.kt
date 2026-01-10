@@ -59,15 +59,15 @@ import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.hlopg.R
-import com.hlopg.presentation.admin.viewmodel.EditAdminProfileUiState
-import com.hlopg.presentation.admin.viewmodel.EditAdminProfileViewModel
+import com.hlopg.presentation.admin.viewmodel.EditOwnerProfileUiState
+import com.hlopg.presentation.admin.viewmodel.EditOwnerProfileViewModel
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EditAdminProfileScreen(
+fun EditOwnerProfileScreen(
     navController: NavHostController,
-    viewModel: EditAdminProfileViewModel = hiltViewModel()
+    viewModel: EditOwnerProfileViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -124,7 +124,7 @@ fun EditAdminProfileScreen(
                         .clip(CircleShape)
                         .background(Color(0xFFFFEB3B))
                         .clickable {
-                            viewModel.onAdminAvatarClick()
+                            viewModel.onOwnerAvatarClick()
                         },
                     contentAlignment = Alignment.Center
                 ) {
@@ -151,12 +151,12 @@ fun EditAdminProfileScreen(
             }
 
             // Form fields
-            AdminProfileForm(
+            OwnerProfileForm(
                 uiState = uiState,
-                onUsernameChange = viewModel::onAdminUsernameChange,
-                onEmailChange = viewModel::onAdminEmailChange,
-                onGenderChange = viewModel::onAdminGenderChange,
-                onPasswordChange = viewModel::onAdminPasswordChange
+                onUsernameChange = viewModel::onOwnerUsernameChange,
+                onEmailChange = viewModel::onOwnerEmailChange,
+                onGenderChange = viewModel::onOwnerGenderChange,
+                onPasswordChange = viewModel::onOwnerPasswordChange
             )
 
             Spacer(Modifier.height(32.dp))
@@ -168,9 +168,9 @@ fun EditAdminProfileScreen(
             ) {
                 Button(
                     onClick = {
-                        viewModel.saveAdminChanges()
+                        viewModel.saveOwnerChanges()
                         scope.launch {
-                            snackbarHostState.showSnackbar("Admin profile saved")
+                            snackbarHostState.showSnackbar("Owner profile saved")
                         }
                     },
                     modifier = Modifier
@@ -198,8 +198,8 @@ fun EditAdminProfileScreen(
 }
 
 @Composable
-private fun AdminProfileForm(
-    uiState: EditAdminProfileUiState,
+private fun OwnerProfileForm(
+    uiState: EditOwnerProfileUiState,
     onUsernameChange: (String) -> Unit,
     onEmailChange: (String) -> Unit,
     onGenderChange: (String) -> Unit,
@@ -209,21 +209,21 @@ private fun AdminProfileForm(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
-        AdminOutlinedLabelledField(
+        OwnerOutlinedLabelledField(
             label = "Username",
             value = uiState.username,
             onValueChange = onUsernameChange
         )
-        AdminOutlinedLabelledField(
+        OwnerOutlinedLabelledField(
             label = "Email",
             value = uiState.email,
             onValueChange = onEmailChange
         )
-        AdminGenderDropdown(
+        OwnerGenderDropdown(
             selected = uiState.gender ?: "Male",
             onSelection = onGenderChange
         )
-        AdminPasswordField(
+        OwnerPasswordField(
             label = "Password",
             password = uiState.password ?: "",
             onPasswordChange = onPasswordChange
@@ -232,7 +232,7 @@ private fun AdminProfileForm(
 }
 
 @Composable
-private fun AdminOutlinedLabelledField(
+private fun OwnerOutlinedLabelledField(
     label: String,
     value: String,
     onValueChange: (String) -> Unit
@@ -268,7 +268,7 @@ private fun AdminOutlinedLabelledField(
 }
 
 @Composable
-private fun AdminGenderDropdown(selected: String, onSelection: (String) -> Unit) {
+private fun OwnerGenderDropdown(selected: String, onSelection: (String) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
     val options = listOf("Male", "Female", "Other")
 
@@ -325,7 +325,7 @@ private fun AdminGenderDropdown(selected: String, onSelection: (String) -> Unit)
 }
 
 @Composable
-private fun AdminPasswordField(label: String, password: String, onPasswordChange: (String) -> Unit) {
+private fun OwnerPasswordField(label: String, password: String, onPasswordChange: (String) -> Unit) {
     var visible by rememberSaveable { mutableStateOf(false) }
 
     Column(modifier = Modifier.fillMaxWidth()) {

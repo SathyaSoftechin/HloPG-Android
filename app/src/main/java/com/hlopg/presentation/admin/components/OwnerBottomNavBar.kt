@@ -29,20 +29,20 @@ import androidx.compose.ui.unit.dp
 import com.hlopg.app.Screen
 
 @Composable
-fun AdminBottomNavBar(
+fun OwnerBottomNavBar(
     currentRoute: String?,
     onNavigate: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
 
     val leftItems = listOf(
-        Screen.AdminHome.route to Icons.Outlined.Home,
+        Screen.OwnerHome.route to Icons.Outlined.Home,
         Screen.PGMembersList.route to Icons.Outlined.Business
     )
 
     val rightItems = listOf(
         Screen.PaymentList.route to Icons.Outlined.CreditCard,
-        Screen.AdminProfile.route to Icons.Outlined.Person
+        Screen.OwnerProfile.route to Icons.Outlined.Person
     )
 
     Surface(

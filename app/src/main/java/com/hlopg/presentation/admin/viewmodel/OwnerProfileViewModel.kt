@@ -20,7 +20,7 @@ import javax.inject.Inject
 
 // ==================== UI STATE ====================
 
-data class AdminProfileViewState(
+data class OwnerProfileViewState(
     val isLoading: Boolean = false,
     val error: String? = null,
     val user: UserProfile? = null,
@@ -40,23 +40,23 @@ sealed class ProfileNavEvent {
 // ==================== VIEWMODEL ====================
 
 @HiltViewModel
-class AdminProfileViewModel @Inject constructor(
+class OwnerProfileViewModel @Inject constructor(
     // TODO: Inject your use cases here
-    // private val getAdminProfileUseCase: GetAdminProfileUseCase,
-    // private val getAdminStatsUseCase: GetAdminStatsUseCase,
+    // private val getOwnerProfileUseCase: GetOwnerProfileUseCase,
+    // private val getOwnerStatsUseCase: GetOwnerStatsUseCase,
     // private val logoutUseCase: LogoutUseCase,
     // private val sessionManager: SessionManager
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(AdminProfileViewState())
-    val uiState: StateFlow<AdminProfileViewState> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(OwnerProfileViewState())
+    val uiState: StateFlow<OwnerProfileViewState> = _uiState.asStateFlow()
 
     private val _navEvents = MutableSharedFlow<ProfileNavEvent>()
     val navEvents: SharedFlow<ProfileNavEvent> = _navEvents.asSharedFlow()
 
     init {
         loadProfile()
-        loadAdminStats()
+        loadOwnerStats()
     }
 
     fun loadProfile() {
@@ -66,7 +66,7 @@ class AdminProfileViewModel @Inject constructor(
             try {
                 // TODO: Replace with actual API call
                 // val userId = sessionManager.getUserId()
-                // val user = getAdminProfileUseCase.execute(userId)
+                // val user = getOwnerProfileUseCase.execute(userId)
 
                 // Mock data for demonstration
                 // Adjust the UserProfile constructor parameters based on your existing UserProfile class
@@ -95,11 +95,11 @@ class AdminProfileViewModel @Inject constructor(
         }
     }
 
-    private fun loadAdminStats() {
+    private fun loadOwnerStats() {
         viewModelScope.launch {
             try {
                 // TODO: Replace with actual API call
-                // val stats = getAdminStatsUseCase.execute()
+                // val stats = getOwnerStatsUseCase.execute()
 
                 _uiState.update {
                     it.copy(
@@ -164,10 +164,10 @@ class AdminProfileViewModel @Inject constructor(
 
     fun retry() {
         loadProfile()
-        loadAdminStats()
+        loadOwnerStats()
     }
 
     fun refreshStats() {
-        loadAdminStats()
+        loadOwnerStats()
     }
 }

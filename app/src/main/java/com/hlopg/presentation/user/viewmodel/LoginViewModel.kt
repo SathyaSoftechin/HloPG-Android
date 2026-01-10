@@ -67,7 +67,7 @@ class LoginViewModel @Inject constructor(
                             )
 
                             Log.d("LoginViewModel", "Session saved successfully")
-                            Log.d("LoginViewModel", "SessionManager.isAdmin(): ${sessionManager.isAdmin()}")
+                            Log.d("LoginViewModel", "SessionManager.isOwner(): ${sessionManager.isOwner()}")
                             Log.d("LoginViewModel", "SessionManager.getUserType(): ${sessionManager.getUserType()}")
                         }
 
@@ -154,7 +154,7 @@ class LoginViewModelLegacy : ViewModel() {
                             )
 
                             Log.d("LoginViewModel", "Session saved successfully")
-                            Log.d("LoginViewModel", "SessionManager.isAdmin(): ${sessionManager.isAdmin()}")
+                            Log.d("LoginViewModel", "SessionManager.isOwner(): ${sessionManager.isOwner()}")
                             Log.d("LoginViewModel", "SessionManager.getUserType(): ${sessionManager.getUserType()}")
                         }
 

@@ -29,7 +29,7 @@ import com.hlopg.presentation.admin.viewmodel.*
 
 // ==================== ADMIN HEADER ====================
 @Composable
-fun AdminHeader(
+fun OwnerHeader(
     location: String,
     onNotificationClick: () -> Unit
 ) {
@@ -130,8 +130,8 @@ fun AdminHeader(
 
 // ==================== ADMIN PG CARD ====================
 @Composable
-fun AdminPGCard(
-    pgDetails: AdminPGDetails,
+fun OwnerPGCard(
+    pgDetails: OwnerPGDetails,
     onCardClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -266,9 +266,9 @@ fun AdminPGCard(
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    AdminAmenityIcon(Icons.Outlined.Wifi)
-                    AdminAmenityIcon(Icons.Outlined.Restaurant)
-                    AdminAmenityIcon(Icons.Outlined.Bathtub)
+                    OwnerAmenityIcon(Icons.Outlined.Wifi)
+                    OwnerAmenityIcon(Icons.Outlined.Restaurant)
+                    OwnerAmenityIcon(Icons.Outlined.Bathtub)
                     if (pgDetails.amenitiesCount > 3) {
                         Box(
                             modifier = Modifier
@@ -302,7 +302,7 @@ fun AdminPGCard(
 }
 
 @Composable
-private fun AdminAmenityIcon(icon: androidx.compose.ui.graphics.vector.ImageVector) {
+private fun OwnerAmenityIcon(icon: androidx.compose.ui.graphics.vector.ImageVector) {
     Box(
         modifier = Modifier
             .size(28.dp)

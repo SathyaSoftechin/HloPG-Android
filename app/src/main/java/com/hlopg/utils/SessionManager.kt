@@ -51,8 +51,11 @@ class SessionManager @Inject constructor(
     // Get user type
     fun getUserType(): String = prefs.getString(KEY_USER_TYPE, "user") ?: "user"
 
-    // Check if user is admin
-    fun isAdmin(): Boolean = getUserType() == "admin"
+    // Check if user is owner
+    fun isOwner(): Boolean = getUserType() == "owner"
+
+    // Check if user is user
+    fun isUser(): Boolean = getUserType() == "user"
 
     // Get user ID
     fun getUserId(): String = prefs.getString(KEY_USER_ID, "") ?: ""

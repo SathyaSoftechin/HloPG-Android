@@ -1,10 +1,10 @@
 package com.hlopg.app
 
-
 sealed class Screen(val route: String) {
     // ============= AUTH SCREENS =============
     object Role : Screen("role_selection")
-    object Login : Screen("login")
+    object Login : Screen("login")  // User login
+    object OwnerLogin : Screen("owner_login")  // Owner login - NEW
     object Signup : Screen("signup")
     object Otpverification : Screen("otp_verification")
     object Forgotpass : Screen("forgot_password")
@@ -18,14 +18,14 @@ sealed class Screen(val route: String) {
     object Payment : Screen("payment")
     object Search : Screen("search")
 
-    // ============= ADMIN SCREENS =============
-    object AdminHome : Screen("admin_home")
-    object AdminProfile : Screen("admin_profile")
+    // ============= OWNER SCREENS =============
+    object OwnerHome : Screen("owner_home")
+    object OwnerProfile : Screen("owner_profile")
     object PaymentList : Screen("payment_list")
     object PGMembersList : Screen("pg_members_list")
     object UploadPG : Screen("upload_pg")
     object RoomManagement : Screen("room_management")
-    object EditAdminProfileScreen : Screen("edit_admin_profile")
+    object EditOwnerProfileScreen : Screen("edit_owner_profile")
 
     // ============= SHARED SCREENS =============
     object Profile : Screen("profile")
@@ -39,7 +39,7 @@ sealed class Screen(val route: String) {
 // User type constants
 object UserType {
     const val USER = "user"
-    const val ADMIN = "admin"
+    const val OWNER = "owner"
 }
 
 // Navigation arguments

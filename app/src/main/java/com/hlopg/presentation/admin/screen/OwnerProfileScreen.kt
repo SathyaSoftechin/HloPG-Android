@@ -53,8 +53,8 @@ import androidx.compose.ui.window.Dialog
 import coil.compose.AsyncImage
 import com.hlopg.app.Screen
 
-// Data Models for AdminProfileScreen (separate from ViewModel's UI state)
-data class AdminProfileData(
+// Data Models for OwnerProfileScreen (separate from ViewModel's UI state)
+data class OwnerProfileData(
     val id: String,
     val name: String,
     val email: String? = null,
@@ -62,7 +62,7 @@ data class AdminProfileData(
     val phone: String? = null
 )
 
-data class AdminMenuItem(
+data class OwnerMenuItem(
     val id: String,
     val icon: ImageVector,
     val title: String,
@@ -73,16 +73,16 @@ data class AdminMenuItem(
 )
 
 @Composable
-fun AdminProfileScreen(
+fun OwnerProfileScreen(
     onNavigate: (String) -> Unit = {}
 ) {
     var showLogoutDialog by remember { mutableStateOf(false) }
 
-    var demoAdmin by remember {
+    var demoOwner by remember {
         mutableStateOf(
-            AdminProfileData(
+            OwnerProfileData(
                 id = "1",
-                name = "Admin",
+                name = "Owner",
                 email = "admin@example.com",
                 avatarUrl = null
             )
@@ -91,13 +91,13 @@ fun AdminProfileScreen(
 
     val adminMenuItems = remember(onNavigate) {
         listOf(
-            AdminMenuItem(
+            OwnerMenuItem(
                 id = "notifications",
                 icon = Icons.Outlined.Notifications,
                 title = "Notification",
                 onClick = { onNavigate(Screen.Notifications.route) }
             ),
-            AdminMenuItem(
+            OwnerMenuItem(
                 id = "myrooms",
                 icon = Icons.Outlined.Hotel,
                 title = "My Rooms",
@@ -105,7 +105,7 @@ fun AdminProfileScreen(
                     onNavigate(Screen.RoomManagement.route)
                 }
             ),
-            AdminMenuItem(
+            OwnerMenuItem(
                 id = "editpgs",
                 icon = Icons.Outlined.List,
                 title = "Edit PG's List",
@@ -113,13 +113,13 @@ fun AdminProfileScreen(
                     //onNavigate(Screen.EditPGsList.route)
                 }
             ),
-            AdminMenuItem(
+            OwnerMenuItem(
                 id = "terms",
                 icon = Icons.Filled.Info,
                 title = "Terms and Conditions",
                 onClick = { onNavigate(Screen.Terms.route) }
             ),
-            AdminMenuItem(
+            OwnerMenuItem(
                 id = "help",
                 icon = Icons.Filled.Help,
                 title = "Help and Support",
@@ -129,7 +129,7 @@ fun AdminProfileScreen(
     }
 
     if (showLogoutDialog) {
-        AdminLogoutConfirmationDialog(
+        OwnerLogoutConfirmationDialog(
             onDismiss = { showLogoutDialog = false },
             onConfirm = {
                 showLogoutDialog = false
@@ -162,16 +162,16 @@ fun AdminProfileScreen(
 
             Spacer(Modifier.height(32.dp))
 
-            AdminProfileAvatar(
-                avatarUrl = demoAdmin.avatarUrl,
-                name = demoAdmin.name
+            OwnerProfileAvatar(
+                avatarUrl = demoOwner.avatarUrl,
+                name = demoOwner.name
             )
 
             Spacer(Modifier.height(12.dp))
 
-            AdminProfileName(
-                name = demoAdmin.name,
-                onEdit = { onNavigate(Screen.EditAdminProfileScreen.route) }
+            OwnerProfileName(
+                name = demoOwner.name,
+                onEdit = { onNavigate(Screen.EditOwnerProfileScreen.route) }
             )
 
             Spacer(Modifier.height(32.dp))
@@ -183,10 +183,10 @@ fun AdminProfileScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 adminMenuItems.forEach { item ->
-                    AdminMenuItemCard(item = item)
+                    OwnerMenuItemCard(item = item)
                 }
 
-                AdminLogoutCard(onLogout = { showLogoutDialog = true })
+                OwnerLogoutCard(onLogout = { showLogoutDialog = true })
             }
 
             Spacer(Modifier.height(24.dp))
@@ -203,7 +203,7 @@ fun AdminProfileScreen(
 }
 
 @Composable
-private fun AdminLogoutConfirmationDialog(
+private fun OwnerLogoutConfirmationDialog(
     onDismiss: () -> Unit,
     onConfirm: () -> Unit
 ) {
@@ -294,7 +294,7 @@ private fun AdminLogoutConfirmationDialog(
 }
 
 @Composable
-private fun AdminProfileAvatar(
+private fun OwnerProfileAvatar(
     avatarUrl: String?,
     name: String,
     modifier: Modifier = Modifier
@@ -310,14 +310,14 @@ private fun AdminProfileAvatar(
         if (avatarUrl != null) {
             AsyncImage(
                 model = avatarUrl,
-                contentDescription = "Admin Profile Avatar",
+                contentDescription = "Owner Profile Avatar",
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop
             )
         } else {
             Icon(
                 imageVector = Icons.Default.Person,
-                contentDescription = "Default Admin Avatar",
+                contentDescription = "Default Owner Avatar",
                 tint = Color(0xFF2E7D32),
                 modifier = Modifier.size(60.dp)
             )
@@ -326,7 +326,7 @@ private fun AdminProfileAvatar(
 }
 
 @Composable
-private fun AdminProfileName(
+private fun OwnerProfileName(
     name: String,
     onEdit: () -> Unit,
     modifier: Modifier = Modifier
@@ -353,8 +353,8 @@ private fun AdminProfileName(
 }
 
 @Composable
-private fun AdminMenuItemCard(
-    item: AdminMenuItem,
+private fun OwnerMenuItemCard(
+    item: OwnerMenuItem,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -405,7 +405,7 @@ private fun AdminMenuItemCard(
 }
 
 @Composable
-private fun AdminLogoutCard(
+private fun OwnerLogoutCard(
     onLogout: () -> Unit,
     modifier: Modifier = Modifier
 ) {

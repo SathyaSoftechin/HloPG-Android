@@ -31,21 +31,21 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import com.hlopg.presentation.admin.components.AdminBottomNavBar
-import com.hlopg.presentation.admin.components.AdminHeader
-import com.hlopg.presentation.admin.components.AdminPGCard
+import com.hlopg.presentation.admin.components.OwnerBottomNavBar
+import com.hlopg.presentation.admin.components.OwnerHeader
+import com.hlopg.presentation.admin.components.OwnerPGCard
 import com.hlopg.presentation.admin.components.BookingAnalytics
 import com.hlopg.presentation.admin.components.ComplaintsSection
 import com.hlopg.presentation.admin.components.MembersSection
 import com.hlopg.presentation.admin.components.PGUpdatesSection
 import com.hlopg.presentation.admin.components.ReviewsSection
-import com.hlopg.presentation.admin.viewmodel.AdminDashboardViewModel
-import com.hlopg.presentation.admin.viewmodel.AdminNavEvent
+import com.hlopg.presentation.admin.viewmodel.OwnerDashboardViewModel
+import com.hlopg.presentation.admin.viewmodel.OwnerNavEvent
 
 @Composable
-fun AdminDashboardScreen(
+fun OwnerDashboardScreen(
     navController: NavHostController,
-    viewModel: AdminDashboardViewModel = hiltViewModel()
+    viewModel: OwnerDashboardViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val listState = rememberLazyListState()
@@ -53,10 +53,10 @@ fun AdminDashboardScreen(
     LaunchedEffect(Unit) {
         viewModel.navEvents.collect { event ->
             when (event) {
-                is AdminNavEvent.OpenPGDetails -> {
+                is OwnerNavEvent.OpenPGDetails -> {
                     navController.navigate("admin/pg_details/${event.pgId}")
                 }
-                is AdminNavEvent.OpenMemberDetails -> {
+                is OwnerNavEvent.OpenMemberDetails -> {
                     navController.navigate("admin/member/${event.memberId}")
                 }
             }
@@ -66,7 +66,7 @@ fun AdminDashboardScreen(
     Scaffold(
         containerColor = Color(0xFFFAFAFA),
         bottomBar = {
-            AdminBottomNavBar(
+            OwnerBottomNavBar(
                 currentRoute = "admin/home",
                 onNavigate = { route ->
                     navController.navigate(route) {
@@ -114,7 +114,7 @@ fun AdminDashboardScreen(
                             }
 
                             items(uiState.myPGs) { pg ->
-                                AdminPGCard(
+                                OwnerPGCard(
                                     pgDetails = pg,
                                     onCardClick = { viewModel.onPGCardClick(it) },
                                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
@@ -223,8 +223,8 @@ fun AdminDashboardScreen(
                 }
             }
 
-            // Admin Header - Always visible
-            AdminHeader(
+            // Owner Header - Always visible
+            OwnerHeader(
                 location = uiState.location,
                 onNotificationClick = {
                     navController.navigate("admin/notifications")
@@ -305,5 +305,5 @@ fun SectionHeader(title: String) {
 @Preview(showBackground = true)
 @Composable
 fun DashBoardPreview() {
-    AdminDashboardScreen(navController = rememberNavController())
+    OwnerDashboardScreen(navController = rememberNavController())
 }

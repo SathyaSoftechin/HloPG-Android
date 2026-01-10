@@ -6,44 +6,44 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import com.hlopg.app.Screen
-import com.hlopg.presentation.admin.screen.AdminDashboardScreen
-import com.hlopg.presentation.admin.screen.AdminProfileScreen
-import com.hlopg.presentation.admin.screen.EditAdminProfileScreen
+import com.hlopg.presentation.admin.screen.EditOwnerProfileScreen
+import com.hlopg.presentation.admin.screen.OwnerDashboardScreen
+import com.hlopg.presentation.admin.screen.OwnerProfileScreen
 import com.hlopg.presentation.admin.screen.PGMembersListScreen
 import com.hlopg.presentation.admin.screen.PaymentsListScreen
 import com.hlopg.presentation.admin.screen.UploadPGScreen
 import com.hlopg.presentation.admin.screens.RoomManagementScreen
-import com.hlopg.presentation.admin.viewmodel.AdminDashboardViewModel
+import com.hlopg.presentation.admin.viewmodel.OwnerDashboardViewModel
 import com.hlopg.presentation.admin.viewmodel.PGMembersViewModel
 import com.hlopg.presentation.admin.viewmodel.PaymentsViewModel
 import com.hlopg.presentation.admin.viewmodel.RoomManagementViewModel
 import com.hlopg.presentation.admin.viewmodel.UploadPGViewModel
 
 /**
- * Admin navigation graph containing all admin-related screens
+ * Owner navigation graph containing all admin-related screens
  */
 fun NavGraphBuilder.adminNavGraph(
     navController: NavHostController
 ) {
 
     // ================= ADMIN HOME/DASHBOARD =================
-    composable(Screen.AdminHome.route) {
+    composable(Screen.OwnerHome.route) {
         // Prevent navigating back to auth/login
         BackHandler(enabled = true) {
             // Do nothing - prevent back navigation
         }
 
-        val viewModel: AdminDashboardViewModel = hiltViewModel()
+        val viewModel: OwnerDashboardViewModel = hiltViewModel()
 
-        AdminDashboardScreen(
+        OwnerDashboardScreen(
             navController = navController,
             viewModel = viewModel
         )
     }
 
     // ================= ADMIN PROFILE =================
-    composable(Screen.AdminProfile.route) {
-        AdminProfileScreen(
+    composable(Screen.OwnerProfile.route) {
+        OwnerProfileScreen(
             onNavigate = { route ->
                 navController.navigate(route)
             }
@@ -51,8 +51,8 @@ fun NavGraphBuilder.adminNavGraph(
     }
 
     // ================= EDIT ADMIN PROFILE =================
-    composable(Screen.EditAdminProfileScreen.route) {
-        EditAdminProfileScreen(
+    composable(Screen.EditOwnerProfileScreen.route) {
+        EditOwnerProfileScreen(
             navController = navController
         )
     }

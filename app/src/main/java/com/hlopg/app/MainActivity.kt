@@ -12,7 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.hlopg.presentation.admin.components.AdminBottomNavBar
+import com.hlopg.presentation.admin.components.OwnerBottomNavBar
 import com.hlopg.presentation.ui.theme.HloPGTheme
 import com.hlopg.presentation.user.components.BottomNavBar
 import com.hlopg.utils.SessionManager
@@ -34,8 +34,8 @@ class MainActivity : ComponentActivity() {
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentRoute = navBackStackEntry?.destination?.route
 
-                val isAdmin = true //sessionManager.isAdmin()
-                val isUser = !sessionManager.isAdmin()
+                val isOwner = sessionManager.isOwner()
+                val isUser = sessionManager.isUser()
 
                 // User bottom nav routes
                 val userBottomNavRoutes = listOf(
@@ -45,32 +45,43 @@ class MainActivity : ComponentActivity() {
                     Screen.Profile.route
                 )
 
-                val adminRoutes = setOf(
-                    Screen.AdminHome.route,
-                    Screen.AdminProfile.route,
+                val ownerRoutes = setOf(
+                    Screen.OwnerHome.route,
+                    Screen.OwnerProfile.route,
                     Screen.PaymentList.route,
                     Screen.PGMembersList.route,
                 )
 
-                val showAdminBottomBar = isAdmin && currentRoute in adminRoutes
+                val showOwnerBottomBar = isOwner && currentRoute in ownerRoutes
 
                 // Show user bottom bar only on user tabs
                 val showUserBottomBar = isUser && currentRoute in userBottomNavRoutes
 
-                // TEMP start destination
-                val startDestination = Screen.AdminHome.route
+                val startDestination = when {
+                    sessionManager.isLoggedIn() && sessionManager.isOwner() -> {
+                        // Owner is logged in → go to owner home
+                        Screen.OwnerHome.route
+                    }
+                    sessionManager.isLoggedIn() && sessionManager.isUser() -> {
+                        // User is logged in → go to user home
+                        Screen.Home.route
+                    }
+                    else -> {
+                        // Not logged in → go to role selection
+                        Screen.Role.route
+                    }
+                }
 
                 Box(modifier = Modifier.fillMaxSize()) {
 
                     RootNavGraph(
                         navController = navController,
                         startDestination = startDestination
-                        // ← sessionManager removed - ViewModel handles session saving!
                     )
 
                     // ADMIN BOTTOM BAR
-                    if (showAdminBottomBar) {
-                        AdminBottomNavBar(
+                    if (showOwnerBottomBar) {
+                        OwnerBottomNavBar(
                             currentRoute = currentRoute,
                             onNavigate = { route ->
                                 if (route != currentRoute) {

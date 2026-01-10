@@ -11,7 +11,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 // UI state for the edit admin profile screen
-data class EditAdminProfileUiState(
+data class EditOwnerProfileUiState(
     val avatarUrl: String? = null,
     val username: String = "",
     val email: String = "",
@@ -21,25 +21,25 @@ data class EditAdminProfileUiState(
 )
 
 @HiltViewModel
-class EditAdminProfileViewModel @Inject constructor(
+class EditOwnerProfileViewModel @Inject constructor(
     // inject your repo if you want to persist changes
 ) : ViewModel() {
 
     // backing state
-    private val _uiState = MutableStateFlow(EditAdminProfileUiState())
-    val uiState: StateFlow<EditAdminProfileUiState> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(EditOwnerProfileUiState())
+    val uiState: StateFlow<EditOwnerProfileUiState> = _uiState.asStateFlow()
 
     init {
         // Load initial admin profile — replace with real repo call if available
-        loadLocalAdminProfile()
+        loadLocalOwnerProfile()
     }
 
-    private fun loadLocalAdminProfile() {
+    private fun loadLocalOwnerProfile() {
         // Replace with repository/data store load
         viewModelScope.launch {
-            _uiState.value = EditAdminProfileUiState(
+            _uiState.value = EditOwnerProfileUiState(
                 avatarUrl = null, // or some URL
-                username = "Admin",
+                username = "Owner",
                 email = "admin@hlopg.com",
                 gender = "Male",
                 password = "admin123"
@@ -48,28 +48,28 @@ class EditAdminProfileViewModel @Inject constructor(
     }
 
     // UI event handlers
-    fun onAdminAvatarClick() {
+    fun onOwnerAvatarClick() {
         // TODO: implement image picker and update avatarUrl
         // For now just toggles placeholder / no-op
     }
 
-    fun onAdminUsernameChange(new: String) {
+    fun onOwnerUsernameChange(new: String) {
         _uiState.update { it.copy(username = new) }
     }
 
-    fun onAdminEmailChange(new: String) {
+    fun onOwnerEmailChange(new: String) {
         _uiState.update { it.copy(email = new) }
     }
 
-    fun onAdminGenderChange(new: String) {
+    fun onOwnerGenderChange(new: String) {
         _uiState.update { it.copy(gender = new) }
     }
 
-    fun onAdminPasswordChange(new: String) {
+    fun onOwnerPasswordChange(new: String) {
         _uiState.update { it.copy(password = new) }
     }
 
-    fun saveAdminChanges() {
+    fun saveOwnerChanges() {
         // Update saving state, persist to repository or DataStore (not implemented here)
         viewModelScope.launch {
             _uiState.update { it.copy(isSaving = true) }

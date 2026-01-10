@@ -15,11 +15,11 @@ import javax.inject.Inject
 
 // ==================== UI STATE ====================
 
-data class AdminDashboardUiState(
+data class OwnerDashboardUiState(
     val isLoading: Boolean = false,
     val error: String? = null,
     val location: String = "Hyderabad",
-    val myPGs: List<AdminPGDetails> = emptyList(),
+    val myPGs: List<OwnerPGDetails> = emptyList(),
     val updateText: String = "",
     val selectedAnalyticsDate: String = "Today",
     val bookingCount: Int = 0,
@@ -33,7 +33,7 @@ data class AdminDashboardUiState(
 
 // ==================== DATA MODELS ====================
 
-data class AdminPGDetails(
+data class OwnerPGDetails(
     val id: String,
     val name: String,
     val location: String,
@@ -80,15 +80,15 @@ data class ReviewDetails(
 
 // ==================== NAVIGATION EVENTS ====================
 
-sealed class AdminNavEvent {
-    data class OpenPGDetails(val pgId: String) : AdminNavEvent()
-    data class OpenMemberDetails(val memberId: String) : AdminNavEvent()
+sealed class OwnerNavEvent {
+    data class OpenPGDetails(val pgId: String) : OwnerNavEvent()
+    data class OpenMemberDetails(val memberId: String) : OwnerNavEvent()
 }
 
 // ==================== VIEWMODEL ====================
 
 @HiltViewModel
-class AdminDashboardViewModel @Inject constructor(
+class OwnerDashboardViewModel @Inject constructor(
     // TODO: Inject your use cases here
     // private val getOwnerPGsUseCase: GetOwnerPGsUseCase,
     // private val getBookingAnalyticsUseCase: GetBookingAnalyticsUseCase,
@@ -98,11 +98,11 @@ class AdminDashboardViewModel @Inject constructor(
     // private val sessionManager: SessionManager
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(AdminDashboardUiState())
-    val uiState: StateFlow<AdminDashboardUiState> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(OwnerDashboardUiState())
+    val uiState: StateFlow<OwnerDashboardUiState> = _uiState.asStateFlow()
 
-    private val _navEvents = MutableSharedFlow<AdminNavEvent>()
-    val navEvents: SharedFlow<AdminNavEvent> = _navEvents.asSharedFlow()
+    private val _navEvents = MutableSharedFlow<OwnerNavEvent>()
+    val navEvents: SharedFlow<OwnerNavEvent> = _navEvents.asSharedFlow()
 
     init {
         loadDashboardData()
@@ -138,7 +138,7 @@ class AdminDashboardViewModel @Inject constructor(
         // val pgs = getOwnerPGsUseCase.execute(ownerId)
 
         val mockPGs = listOf(
-            AdminPGDetails(
+            OwnerPGDetails(
                 id = "1",
                 name = "Siva Kumar PG (Madhapur)",
                 location = "Madhapur",
@@ -148,7 +148,7 @@ class AdminDashboardViewModel @Inject constructor(
                 amenitiesCount = 8,
                 badgeColor = 0xFF7556FF
             ),
-            AdminPGDetails(
+            OwnerPGDetails(
                 id = "2",
                 name = "Sai Ram PG (Madhapur)",
                 location = "Madhapur",
@@ -263,13 +263,13 @@ class AdminDashboardViewModel @Inject constructor(
 
     fun onPGCardClick(pgId: String) {
         viewModelScope.launch {
-            _navEvents.emit(AdminNavEvent.OpenPGDetails(pgId))
+            _navEvents.emit(OwnerNavEvent.OpenPGDetails(pgId))
         }
     }
 
     fun onMemberClick(memberId: String) {
         viewModelScope.launch {
-            _navEvents.emit(AdminNavEvent.OpenMemberDetails(memberId))
+            _navEvents.emit(OwnerNavEvent.OpenMemberDetails(memberId))
         }
     }
 

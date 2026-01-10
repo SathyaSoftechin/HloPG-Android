@@ -72,7 +72,7 @@ class OTPViewModel @Inject constructor(
                             )
 
                             Log.d("OTPViewModel", "Session saved after OTP verification")
-                            Log.d("OTPViewModel", "SessionManager.isAdmin(): ${sessionManager.isAdmin()}")
+                            Log.d("OTPViewModel", "SessionManager.isOwner(): ${sessionManager.isOwner()}")
                         }
 
                         _otpResult.postValue(result)
