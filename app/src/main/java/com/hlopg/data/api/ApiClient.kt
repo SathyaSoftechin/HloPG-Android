@@ -1,13 +1,18 @@
 package com.hlopg.data.api
 
+import com.hlopg.BuildConfig
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
+
 object RetrofitInstance {
 
-    private const val BASE_URL = "https://hlopgbackend.in/"  // base URL
+    //private const val BASE_URL = "https://hlopgbackend.in/"//BuildConfig.BASE_URL  // base URL
+
+    val BASE_URL = BuildConfig.BASE_URL  // base URL
+
 
     // Logging client
     private val client: OkHttpClient by lazy {
@@ -16,6 +21,7 @@ object RetrofitInstance {
                 level = HttpLoggingInterceptor.Level.BODY
             })
             .build()
+
     }
 
     // Single Retrofit instance

@@ -28,12 +28,30 @@ class OwnerAuthRepository @Inject constructor(
         return withContext(Dispatchers.IO) {
             try {
                 val response = api.loginOwner(req)
-                handleApiResponse(response)
+
+                if (response.isSuccessful) {
+                    val body = response.body()
+
+                    if (body != null) {
+                        tokenManager.saveToken(body.token)
+
+                        Resource.Success(
+                            data = body.owner,
+                            token = body.token
+                        )
+                    } else {
+                        Resource.Error("Empty response body")
+                    }
+                } else {
+                    Resource.Error(response.errorBody()?.string())
+                }
+
             } catch (e: Exception) {
                 Resource.Error(e.message ?: "Owner login failed")
             }
         }
     }
+
 
 //    suspend fun getOwner(): Resource<Owner> =
 //        withContext(Dispatchers.IO) {

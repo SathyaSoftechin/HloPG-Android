@@ -106,6 +106,7 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
                             popUpTo(0) { inclusive = true }
                         }
                     }
+
                     else -> navController.navigate(route)
                 }
             }

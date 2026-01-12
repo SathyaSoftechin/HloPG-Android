@@ -1,5 +1,8 @@
 package com.hlopg.presentation.admin.screen
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -32,13 +35,16 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -50,10 +56,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.hlopg.app.Screen
+import com.hlopg.presentation.admin.viewmodel.OwnerProfileViewModel
+import com.hlopg.presentation.admin.viewmodel.ProfileNavEvent
 
-// Data Models for OwnerProfileScreen (separate from ViewModel's UI state)
+// Data Models for OwnerProfileScreen
 data class OwnerProfileData(
     val id: String,
     val name: String,
@@ -74,130 +83,339 @@ data class OwnerMenuItem(
 
 @Composable
 fun OwnerProfileScreen(
-    onNavigate: (String) -> Unit = {}
+    onNavigate: (String) -> Unit = {},
+    viewModel: OwnerProfileViewModel = hiltViewModel()
 ) {
-    var showLogoutDialog by remember { mutableStateOf(false) }
+    val uiState by viewModel.uiState.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
 
-    var demoOwner by remember {
-        mutableStateOf(
-            OwnerProfileData(
-                id = "1",
-                name = "Owner",
-                email = "admin@example.com",
-                avatarUrl = null
-            )
-        )
+    // Handle navigation events
+    LaunchedEffect(Unit) {
+        viewModel.navEvents.collect { event ->
+            when (event) {
+                is ProfileNavEvent.NavigateToLogin -> {
+                    onNavigate(Screen.Role.route)
+                }
+                is ProfileNavEvent.NavigateTo -> {
+                    onNavigate(event.route)
+                }
+            }
+        }
     }
 
-    val adminMenuItems = remember(onNavigate) {
+    // Show error messages
+    LaunchedEffect(uiState.error) {
+        uiState.error?.let { error ->
+            snackbarHostState.showSnackbar(error)
+            viewModel.clearError()
+        }
+    }
+
+    val adminMenuItems = remember(viewModel) {
         listOf(
             OwnerMenuItem(
                 id = "notifications",
                 icon = Icons.Outlined.Notifications,
                 title = "Notification",
-                onClick = { onNavigate(Screen.Notifications.route) }
+                onClick = { viewModel.navigateTo(Screen.Notifications.route) }
             ),
             OwnerMenuItem(
                 id = "myrooms",
                 icon = Icons.Outlined.Hotel,
                 title = "My Rooms",
-                onClick = {
-                    onNavigate(Screen.RoomManagement.route)
-                }
+                onClick = { viewModel.navigateTo(Screen.RoomManagement.route) }
             ),
             OwnerMenuItem(
                 id = "editpgs",
                 icon = Icons.Outlined.List,
                 title = "Edit PG's List",
                 onClick = {
-                    //onNavigate(Screen.EditPGsList.route)
+                    // TODO: Implement when route is ready
+                    // viewModel.navigateTo(Screen.EditPGsList.route)
                 }
             ),
             OwnerMenuItem(
                 id = "terms",
                 icon = Icons.Filled.Info,
                 title = "Terms and Conditions",
-                onClick = { onNavigate(Screen.Terms.route) }
+                onClick = { viewModel.navigateTo(Screen.Terms.route) }
             ),
             OwnerMenuItem(
                 id = "help",
                 icon = Icons.Filled.Help,
                 title = "Help and Support",
-                onClick = { onNavigate(Screen.Help.route) }
+                onClick = { viewModel.navigateTo(Screen.Help.route) }
             )
         )
     }
 
-    if (showLogoutDialog) {
+    if (uiState.showLogoutDialog) {
         OwnerLogoutConfirmationDialog(
-            onDismiss = { showLogoutDialog = false },
-            onConfirm = {
-                showLogoutDialog = false
-                // Clear admin session and navigate to login
-                onNavigate(Screen.Login.route)
-            }
+            onDismiss = { viewModel.dismissLogoutDialog() },
+            onConfirm = { viewModel.logout() }
         )
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFF5F5F5))
-    ) {
+    Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(bottom = 80.dp), // Space for bottom nav
-            horizontalAlignment = Alignment.CenterHorizontally
+                .background(Color(0xFFF5F5F5))
         ) {
-            Spacer(Modifier.height(24.dp))
-
-            Text(
-                text = "Account",
-                fontSize = 22.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.Black
-            )
-
-            Spacer(Modifier.height(32.dp))
-
-            OwnerProfileAvatar(
-                avatarUrl = demoOwner.avatarUrl,
-                name = demoOwner.name
-            )
-
-            Spacer(Modifier.height(12.dp))
-
-            OwnerProfileName(
-                name = demoOwner.name,
-                onEdit = { onNavigate(Screen.EditOwnerProfileScreen.route) }
-            )
-
-            Spacer(Modifier.height(32.dp))
-
             Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(bottom = 80.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                adminMenuItems.forEach { item ->
-                    OwnerMenuItemCard(item = item)
+                Spacer(Modifier.height(24.dp))
+
+                Text(
+                    text = "Account",
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black
+                )
+
+                Spacer(Modifier.height(32.dp))
+
+                when {
+                    uiState.isLoading && uiState.user == null -> {
+                        OwnerLoadingState()
+                    }
+
+                    uiState.user != null -> {
+                        AnimatedVisibility(
+                            visible = true,
+                            enter = fadeIn(),
+                            exit = fadeOut()
+                        ) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                OwnerProfileAvatar(
+                                    avatarUrl = uiState.user?.avatarUrl,
+                                    name = uiState.user?.name ?: ""
+                                )
+
+                                Spacer(Modifier.height(12.dp))
+
+                                OwnerProfileName(
+                                    name = uiState.user?.name ?: "",
+                                    onEdit = { viewModel.navigateTo(Screen.EditOwnerProfileScreen.route) }
+                                )
+
+                                uiState.user?.email?.let { email ->
+                                    Spacer(Modifier.height(4.dp))
+                                    Text(
+                                        text = email,
+                                        fontSize = 14.sp,
+                                        color = Color.Gray
+                                    )
+                                }
+
+                                Spacer(Modifier.height(24.dp))
+
+                                // Owner Stats Section
+                                OwnerStatsSection(
+                                    pgCount = uiState.pgCount,
+                                    totalRevenue = uiState.totalRevenue,
+                                    activeMembers = uiState.activeMembers,
+                                    onRefresh = { viewModel.refreshStats() }
+                                )
+                            }
+                        }
+                    }
+
+                    else -> {
+                        OwnerErrorState(
+                            message = uiState.error ?: "Failed to load profile",
+                            onRetry = { viewModel.retry() }
+                        )
+                    }
                 }
 
-                OwnerLogoutCard(onLogout = { showLogoutDialog = true })
+                Spacer(Modifier.height(32.dp))
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    adminMenuItems.forEach { item ->
+                        OwnerMenuItemCard(item = item)
+                    }
+
+                    OwnerLogoutCard(onLogout = { viewModel.showLogoutDialog() })
+                }
+
+                Spacer(Modifier.height(24.dp))
+
+                Text(
+                    text = "Version 01",
+                    fontSize = 12.sp,
+                    color = Color.Gray
+                )
+
+                Spacer(Modifier.height(24.dp))
+            }
+        }
+
+        // Snackbar for error messages
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 100.dp)
+        )
+    }
+}
+
+@Composable
+private fun OwnerStatsSection(
+    pgCount: Int,
+    totalRevenue: Int,
+    activeMembers: Int,
+    onRefresh: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Business Overview",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black
+                )
             }
 
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(20.dp))
 
-            Text(
-                text = "Version 01",
-                fontSize = 12.sp,
-                color = Color.Gray
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                OwnerStatItem(
+                    label = "Total PGs",
+                    value = pgCount.toString(),
+                    modifier = Modifier.weight(1f)
+                )
 
-            Spacer(Modifier.height(24.dp))
+                OwnerStatItem(
+                    label = "Revenue",
+                    value = "₹${totalRevenue / 1000}K",
+                    modifier = Modifier.weight(1f)
+                )
+
+                OwnerStatItem(
+                    label = "Members",
+                    value = activeMembers.toString(),
+                    modifier = Modifier.weight(1f)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun OwnerStatItem(
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = value,
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color(0xFF7556FF)
+        )
+        Spacer(Modifier.height(4.dp))
+        Text(
+            text = label,
+            fontSize = 12.sp,
+            color = Color.Gray,
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
+@Composable
+private fun OwnerLoadingState() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 48.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        CircularProgressIndicator(
+            modifier = Modifier.size(48.dp),
+            color = Color(0xFF7556FF)
+        )
+        Spacer(Modifier.height(16.dp))
+        Text(
+            text = "Loading profile...",
+            fontSize = 14.sp,
+            color = Color.Gray
+        )
+    }
+}
+
+@Composable
+private fun OwnerErrorState(
+    message: String,
+    onRetry: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 48.dp, horizontal = 32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "Failed to load profile",
+            fontSize = 18.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = Color.Black
+        )
+        Spacer(Modifier.height(8.dp))
+        Text(
+            text = message,
+            fontSize = 14.sp,
+            color = Color.Gray,
+            textAlign = TextAlign.Center
+        )
+        Spacer(Modifier.height(16.dp))
+        Button(
+            onClick = onRetry,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFF7556FF)
+            ),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Text("Retry", color = Color.White)
         }
     }
 }
@@ -307,7 +525,7 @@ private fun OwnerProfileAvatar(
             .border(4.dp, Color.White, CircleShape),
         contentAlignment = Alignment.Center
     ) {
-        if (avatarUrl != null) {
+        if (!avatarUrl.isNullOrEmpty()) {
             AsyncImage(
                 model = avatarUrl,
                 contentDescription = "Owner Profile Avatar",
@@ -315,12 +533,21 @@ private fun OwnerProfileAvatar(
                 contentScale = ContentScale.Crop
             )
         } else {
-            Icon(
-                imageVector = Icons.Default.Person,
-                contentDescription = "Default Owner Avatar",
-                tint = Color(0xFF2E7D32),
-                modifier = Modifier.size(60.dp)
-            )
+            if (name.isNotEmpty()) {
+                Text(
+                    text = name.first().uppercase(),
+                    fontSize = 48.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF2E7D32)
+                )
+            } else {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = "Default Owner Avatar",
+                    tint = Color(0xFF2E7D32),
+                    modifier = Modifier.size(60.dp)
+                )
+            }
         }
     }
 }

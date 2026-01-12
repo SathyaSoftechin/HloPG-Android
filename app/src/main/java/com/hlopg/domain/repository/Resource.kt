@@ -15,7 +15,7 @@ sealed class Resource<T>(
     )
 
     class Error<T>(
-        message: String,
+        message: String?,
         data: T? = null
     ) : Resource<T>(
         data = data,

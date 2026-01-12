@@ -1,12 +1,12 @@
 package com.hlopg.presentation.admin.viewmodel
 
+import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 
 @HiltViewModel
@@ -100,102 +100,92 @@ class RoomManagementViewModel @Inject constructor() : ViewModel() {
     }
 
     /**
-     * Increase bed capacity for a room (real-time)
+     * Increase bed capacity for a room (optimized for instant update)
      */
     fun increaseBedCapacity(floorKey: String, roomNumber: String) {
-        viewModelScope.launch {
-            val currentRooms = _roomsState.value.toMutableMap()
-            val floorRooms = currentRooms[floorKey]?.toMutableList() ?: return@launch
+        _roomsState.update { currentRooms ->
+            val floorRooms = currentRooms[floorKey] ?: return@update currentRooms
 
-            val roomIndex = floorRooms.indexOfFirst { it.roomNumber == roomNumber }
-            if (roomIndex != -1) {
-                val room = floorRooms[roomIndex]
-                if (room.sharingCapacity < 10) { // Max 10 beds per room
+            val updatedFloorRooms = floorRooms.map { room ->
+                if (room.roomNumber == roomNumber && room.sharingCapacity < 10) {
                     val newCapacity = room.sharingCapacity + 1
-                    val updatedBeds = room.beds.toMutableList()
-
-                    // Add a new bed
-                    updatedBeds.add(
-                        BedData(
-                            bedNumber = newCapacity,
-                            isOccupied = false
-                        )
+                    val updatedBeds = room.beds + BedData(
+                        bedNumber = newCapacity,
+                        isOccupied = false
                     )
-
-                    floorRooms[roomIndex] = room.copy(
+                    room.copy(
                         sharingCapacity = newCapacity,
                         beds = updatedBeds
                     )
-                    currentRooms[floorKey] = floorRooms
-                    _roomsState.value = currentRooms
-                    updateStatistics()
+                } else {
+                    room
                 }
             }
+
+            currentRooms + (floorKey to updatedFloorRooms)
         }
+        updateStatistics()
     }
 
     /**
-     * Decrease bed capacity for a room (real-time)
+     * Decrease bed capacity for a room (optimized for instant update)
      */
     fun decreaseBedCapacity(floorKey: String, roomNumber: String) {
-        viewModelScope.launch {
-            val currentRooms = _roomsState.value.toMutableMap()
-            val floorRooms = currentRooms[floorKey]?.toMutableList() ?: return@launch
+        _roomsState.update { currentRooms ->
+            val floorRooms = currentRooms[floorKey] ?: return@update currentRooms
 
-            val roomIndex = floorRooms.indexOfFirst { it.roomNumber == roomNumber }
-            if (roomIndex != -1) {
-                val room = floorRooms[roomIndex]
-                if (room.sharingCapacity > 0) {
+            val updatedFloorRooms = floorRooms.map { room ->
+                if (room.roomNumber == roomNumber && room.sharingCapacity > 0) {
                     val newCapacity = room.sharingCapacity - 1
                     val updatedBeds = if (newCapacity > 0) {
-                        room.beds.dropLast(1) // Remove last bed
+                        room.beds.dropLast(1)
                     } else {
                         emptyList()
                     }
-
-                    floorRooms[roomIndex] = room.copy(
+                    room.copy(
                         sharingCapacity = newCapacity,
                         beds = updatedBeds
                     )
-                    currentRooms[floorKey] = floorRooms
-                    _roomsState.value = currentRooms
-                    updateStatistics()
+                } else {
+                    room
                 }
             }
+
+            currentRooms + (floorKey to updatedFloorRooms)
         }
+        updateStatistics()
     }
 
     /**
      * Update sharing capacity for a specific room (legacy method for text input)
      */
     fun updateRoomSharingCapacity(floorKey: String, roomNumber: String, capacity: Int) {
-        viewModelScope.launch {
-            val currentRooms = _roomsState.value.toMutableMap()
-            val floorRooms = currentRooms[floorKey]?.toMutableList() ?: return@launch
+        _roomsState.update { currentRooms ->
+            val floorRooms = currentRooms[floorKey] ?: return@update currentRooms
 
-            val roomIndex = floorRooms.indexOfFirst { it.roomNumber == roomNumber }
-            if (roomIndex != -1) {
-                val room = floorRooms[roomIndex]
-                val updatedBeds = createBedsForCapacity(capacity)
-
-                // Preserve existing bed occupancy if possible
-                val preservedBeds = updatedBeds.mapIndexed { index, bed ->
-                    if (index < room.beds.size) {
-                        bed.copy(isOccupied = room.beds[index].isOccupied)
-                    } else {
-                        bed
+            val updatedFloorRooms = floorRooms.map { room ->
+                if (room.roomNumber == roomNumber) {
+                    val updatedBeds = createBedsForCapacity(capacity)
+                    // Preserve existing bed occupancy if possible
+                    val preservedBeds = updatedBeds.mapIndexed { index, bed ->
+                        if (index < room.beds.size) {
+                            bed.copy(isOccupied = room.beds[index].isOccupied)
+                        } else {
+                            bed
+                        }
                     }
+                    room.copy(
+                        sharingCapacity = capacity,
+                        beds = preservedBeds
+                    )
+                } else {
+                    room
                 }
-
-                floorRooms[roomIndex] = room.copy(
-                    sharingCapacity = capacity,
-                    beds = preservedBeds
-                )
-                currentRooms[floorKey] = floorRooms
-                _roomsState.value = currentRooms
-                updateStatistics()
             }
+
+            currentRooms + (floorKey to updatedFloorRooms)
         }
+        updateStatistics()
     }
 
     /**
@@ -211,136 +201,115 @@ class RoomManagementViewModel @Inject constructor() : ViewModel() {
     }
 
     /**
-     * Toggle bed occupancy status (real-time)
+     * Toggle bed occupancy status (optimized for instant update)
      */
     fun toggleBedOccupancy(floorKey: String, roomNumber: String, bedNumber: Int) {
-        viewModelScope.launch {
-            val currentRooms = _roomsState.value.toMutableMap()
-            val floorRooms = currentRooms[floorKey]?.toMutableList() ?: return@launch
+        _roomsState.update { currentRooms ->
+            val floorRooms = currentRooms[floorKey] ?: return@update currentRooms
 
-            val roomIndex = floorRooms.indexOfFirst { it.roomNumber == roomNumber }
-            if (roomIndex != -1) {
-                val room = floorRooms[roomIndex]
-                val updatedBeds = room.beds.toMutableList()
-                val bedIndex = updatedBeds.indexOfFirst { it.bedNumber == bedNumber }
-
-                if (bedIndex != -1) {
-                    updatedBeds[bedIndex] = updatedBeds[bedIndex].copy(
-                        isOccupied = !updatedBeds[bedIndex].isOccupied
-                    )
-                    floorRooms[roomIndex] = room.copy(beds = updatedBeds)
-                    currentRooms[floorKey] = floorRooms
-                    _roomsState.value = currentRooms
-                    updateStatistics()
+            val updatedFloorRooms = floorRooms.map { room ->
+                if (room.roomNumber == roomNumber) {
+                    val updatedBeds = room.beds.map { bed ->
+                        if (bed.bedNumber == bedNumber) {
+                            bed.copy(isOccupied = !bed.isOccupied)
+                        } else {
+                            bed
+                        }
+                    }
+                    room.copy(beds = updatedBeds)
+                } else {
+                    room
                 }
             }
+
+            currentRooms + (floorKey to updatedFloorRooms)
         }
+        updateStatistics()
     }
 
     /**
-     * Occupy all beds in a specific room
+     * Occupy all beds in a specific room (optimized)
      */
     fun occupyAllBedsInRoom(floorKey: String, roomNumber: String) {
-        viewModelScope.launch {
-            val currentRooms = _roomsState.value.toMutableMap()
-            val floorRooms = currentRooms[floorKey]?.toMutableList() ?: return@launch
+        _roomsState.update { currentRooms ->
+            val floorRooms = currentRooms[floorKey] ?: return@update currentRooms
 
-            val roomIndex = floorRooms.indexOfFirst { it.roomNumber == roomNumber }
-            if (roomIndex != -1) {
-                val room = floorRooms[roomIndex]
-                val updatedBeds = room.beds.map { it.copy(isOccupied = true) }
-
-                floorRooms[roomIndex] = room.copy(beds = updatedBeds)
-                currentRooms[floorKey] = floorRooms
-                _roomsState.value = currentRooms
-                updateStatistics()
+            val updatedFloorRooms = floorRooms.map { room ->
+                if (room.roomNumber == roomNumber) {
+                    room.copy(beds = room.beds.map { it.copy(isOccupied = true) })
+                } else {
+                    room
+                }
             }
+
+            currentRooms + (floorKey to updatedFloorRooms)
         }
+        updateStatistics()
     }
 
     /**
-     * Free all beds in a specific room
+     * Free all beds in a specific room (optimized)
      */
     fun freeAllBedsInRoom(floorKey: String, roomNumber: String) {
-        viewModelScope.launch {
-            val currentRooms = _roomsState.value.toMutableMap()
-            val floorRooms = currentRooms[floorKey]?.toMutableList() ?: return@launch
+        _roomsState.update { currentRooms ->
+            val floorRooms = currentRooms[floorKey] ?: return@update currentRooms
 
-            val roomIndex = floorRooms.indexOfFirst { it.roomNumber == roomNumber }
-            if (roomIndex != -1) {
-                val room = floorRooms[roomIndex]
-                val updatedBeds = room.beds.map { it.copy(isOccupied = false) }
-
-                floorRooms[roomIndex] = room.copy(beds = updatedBeds)
-                currentRooms[floorKey] = floorRooms
-                _roomsState.value = currentRooms
-                updateStatistics()
+            val updatedFloorRooms = floorRooms.map { room ->
+                if (room.roomNumber == roomNumber) {
+                    room.copy(beds = room.beds.map { it.copy(isOccupied = false) })
+                } else {
+                    room
+                }
             }
+
+            currentRooms + (floorKey to updatedFloorRooms)
         }
+        updateStatistics()
     }
 
     /**
      * Occupy all beds in all rooms (Bulk Action)
      */
     fun occupyAllBeds() {
-        viewModelScope.launch {
-            val currentRooms = _roomsState.value.toMutableMap()
-
-            currentRooms.forEach { (floorKey, rooms) ->
-                val updatedRooms = rooms.map { room ->
-                    room.copy(
-                        beds = room.beds.map { it.copy(isOccupied = true) }
-                    )
+        _roomsState.update { currentRooms ->
+            currentRooms.mapValues { (_, rooms) ->
+                rooms.map { room ->
+                    room.copy(beds = room.beds.map { it.copy(isOccupied = true) })
                 }
-                currentRooms[floorKey] = updatedRooms
             }
-
-            _roomsState.value = currentRooms
-            updateStatistics()
         }
+        updateStatistics()
     }
 
     /**
      * Free all beds in all rooms (Bulk Action)
      */
     fun freeAllBeds() {
-        viewModelScope.launch {
-            val currentRooms = _roomsState.value.toMutableMap()
-
-            currentRooms.forEach { (floorKey, rooms) ->
-                val updatedRooms = rooms.map { room ->
-                    room.copy(
-                        beds = room.beds.map { it.copy(isOccupied = false) }
-                    )
+        _roomsState.update { currentRooms ->
+            currentRooms.mapValues { (_, rooms) ->
+                rooms.map { room ->
+                    room.copy(beds = room.beds.map { it.copy(isOccupied = false) })
                 }
-                currentRooms[floorKey] = updatedRooms
             }
-
-            _roomsState.value = currentRooms
-            updateStatistics()
         }
+        updateStatistics()
     }
 
     /**
      * Reset all room capacities to 0 (Bulk Action)
      */
     fun resetAllRoomCapacities() {
-        viewModelScope.launch {
-            val currentRooms = _roomsState.value.toMutableMap()
-
-            currentRooms.forEach { (floorKey, rooms) ->
-                val updatedRooms = rooms.map { room ->
+        _roomsState.update { currentRooms ->
+            currentRooms.mapValues { (_, rooms) ->
+                rooms.map { room ->
                     room.copy(
                         sharingCapacity = 0,
                         beds = emptyList()
                     )
                 }
-                currentRooms[floorKey] = updatedRooms
             }
-
-            _roomsState.value = currentRooms
-            updateStatistics()
         }
+        updateStatistics()
     }
 
     /**
@@ -508,7 +477,9 @@ class RoomManagementViewModel @Inject constructor() : ViewModel() {
 
 /**
  * Represents a single room with its beds
+ * Marked as @Stable for better Compose performance
  */
+@Stable
 data class RoomData(
     val roomNumber: String,
     val floorNumber: Int,
@@ -533,7 +504,9 @@ data class RoomData(
 
 /**
  * Represents a single bed in a room
+ * Marked as @Stable for better Compose performance
  */
+@Stable
 data class BedData(
     val bedNumber: Int,
     val isOccupied: Boolean
@@ -542,6 +515,7 @@ data class BedData(
 /**
  * Statistics for all rooms
  */
+@Stable
 data class RoomStatistics(
     val totalRooms: Int = 0,
     val totalBeds: Int = 0,
@@ -553,6 +527,7 @@ data class RoomStatistics(
 /**
  * Statistics for a specific floor
  */
+@Stable
 data class FloorStatistics(
     val floorKey: String,
     val totalRooms: Int,

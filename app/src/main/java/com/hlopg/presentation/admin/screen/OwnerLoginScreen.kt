@@ -56,14 +56,14 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.hlopg.R
-import com.hlopg.presentation.admin.viewmodel.OwnerLoginViewModelLegacy
+import com.hlopg.presentation.admin.viewmodel.OwnerLoginViewModel
 import com.hlopg.utils.ValidationUtils
 
 @Composable
 fun OwnerLoginScreen(
-    viewModel: OwnerLoginViewModelLegacy = viewModel(),
+    viewModel: OwnerLoginViewModel = hiltViewModel(),
     onLoginSuccess: (String) -> Unit,  // Receives user_type ("owner")
     onSignupClick: () -> Unit,
     onForgotPasswordClick: () -> Unit
@@ -248,7 +248,7 @@ fun OwnerLoginScreen(
                             if (validation.isValid) {
                                 showError = false
                                 hasHandledSuccess = false
-                                viewModel.login(emailOrPhone, password, context)
+                                viewModel.login(emailOrPhone, password)
                             } else {
                                 errorMessage = validation.errorMessage
                                 showError = true

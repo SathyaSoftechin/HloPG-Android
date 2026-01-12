@@ -2,6 +2,7 @@ package com.hlopg.presentation.admin.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.hlopg.utils.SessionManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,10 +14,9 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-// Import the existing UserProfile from your project
-// Add this import based on where UserProfile is defined in your project
-// For example: import com.hlopg.domain.model.UserProfile
-// or: import com.hlopg.data.model.UserProfile
+// ==================== DATA MODELS ====================
+
+
 
 // ==================== UI STATE ====================
 
@@ -33,7 +33,7 @@ data class OwnerProfileViewState(
 // ==================== NAVIGATION EVENTS ====================
 
 sealed class ProfileNavEvent {
-    object NavigateToLogin : ProfileNavEvent()
+    data object NavigateToLogin : ProfileNavEvent()
     data class NavigateTo(val route: String) : ProfileNavEvent()
 }
 
@@ -41,11 +41,11 @@ sealed class ProfileNavEvent {
 
 @HiltViewModel
 class OwnerProfileViewModel @Inject constructor(
-    // TODO: Inject your use cases here
+    private val sessionManager: SessionManager
+    // TODO: Inject your use cases here when ready
     // private val getOwnerProfileUseCase: GetOwnerProfileUseCase,
     // private val getOwnerStatsUseCase: GetOwnerStatsUseCase,
-    // private val logoutUseCase: LogoutUseCase,
-    // private val sessionManager: SessionManager
+    // private val logoutUseCase: LogoutUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(OwnerProfileViewState())
@@ -64,24 +64,45 @@ class OwnerProfileViewModel @Inject constructor(
             _uiState.update { it.copy(isLoading = true, error = null) }
 
             try {
+                // Validate session
+                val userId = sessionManager.getUserId()
+                if (userId.isEmpty()) {
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            error = "No active session found"
+                        )
+                    }
+                    return@launch
+                }
+
+                val userName = sessionManager.getUserName()
+                if (userName.isEmpty()) {
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            error = "User information not found"
+                        )
+                    }
+                    return@launch
+                }
+
                 // TODO: Replace with actual API call
-                // val userId = sessionManager.getUserId()
                 // val user = getOwnerProfileUseCase.execute(userId)
 
-                // Mock data for demonstration
-                // Adjust the UserProfile constructor parameters based on your existing UserProfile class
-                val mockUser = UserProfile(
-                    id = "admin_1",
-                    name = "John Doe",
-                    email = "admin@hlopg.com",
+                // For now, use session manager data
+                val user = UserProfile(
+                    id = userId,
+                    name = userName,
+                    email = sessionManager.getUserEmail(),
                     avatarUrl = null,
-                    phone = "+91 9876543210"
+                    phone = sessionManager.getUserPhone()
                 )
 
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        user = mockUser
+                        user = user
                     )
                 }
             } catch (e: Exception) {
@@ -101,6 +122,8 @@ class OwnerProfileViewModel @Inject constructor(
                 // TODO: Replace with actual API call
                 // val stats = getOwnerStatsUseCase.execute()
 
+                // Mock data for demonstration
+                // In production, this would fetch real data from backend
                 _uiState.update {
                     it.copy(
                         pgCount = 3,
@@ -109,8 +132,9 @@ class OwnerProfileViewModel @Inject constructor(
                     )
                 }
             } catch (e: Exception) {
-                // Handle error silently or update state
+                // Handle error silently for stats
                 // Don't block profile loading if stats fail
+                // Could log to analytics here
             }
         }
     }
@@ -126,14 +150,21 @@ class OwnerProfileViewModel @Inject constructor(
     fun logout() {
         viewModelScope.launch {
             try {
-                // Dismiss the dialog first
-                _uiState.update { it.copy(showLogoutDialog = false, isLoading = true) }
+                // Dismiss dialog and show loading
+                _uiState.update {
+                    it.copy(
+                        showLogoutDialog = false,
+                        isLoading = true
+                    )
+                }
 
-                // TODO: Clear session and logout
+                // TODO: Clear session and logout via use case
                 // logoutUseCase.execute()
-                // sessionManager.clearSession()
 
-                // Small delay to ensure state is cleared
+                // Clear session
+                sessionManager.logout()
+
+                // Small delay to ensure state is persisted
                 kotlinx.coroutines.delay(300)
 
                 // Navigate to login
@@ -169,5 +200,11 @@ class OwnerProfileViewModel @Inject constructor(
 
     fun refreshStats() {
         loadOwnerStats()
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        // Clean up any resources if needed
+        // Cancel any pending operations
     }
 }

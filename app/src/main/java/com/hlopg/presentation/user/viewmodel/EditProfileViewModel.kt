@@ -3,8 +3,12 @@ package com.hlopg.presentation.user.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.hlopg.utils.SessionManager
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -21,6 +25,7 @@ data class ProfileUiState(
 @HiltViewModel
 class EditProfileViewModel @Inject constructor(
     // inject your repo if you want to persist changes
+    private val sessionManager: SessionManager
 ) : ViewModel() {
 
     // backing state
@@ -35,13 +40,15 @@ class EditProfileViewModel @Inject constructor(
     private fun loadLocalProfile() {
         // Replace with repository/data store load
         viewModelScope.launch {
-            _uiState.value = ProfileUiState(
-                avatarUrl = null, // or some URL
-                username = "User name",
-                email = "Mahi@123gmail.com",
-                gender = "Male",
-                password = "password123"
-            )
+            _uiState.update {
+                it.copy(
+                    avatarUrl = null,
+                    username = sessionManager.getUserName(),
+                    email = sessionManager.getUserEmail(),
+                    gender = "Male",
+                    password = null
+                )
+            }
         }
     }
 

@@ -1,5 +1,8 @@
 package com.hlopg.presentation.screen
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -33,9 +36,11 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -51,8 +56,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.hlopg.app.Screen
+import com.hlopg.presentation.user.viewmodel.ProfileViewModel
 
 // Data Models
 data class UserProfile(
@@ -74,27 +81,18 @@ data class MenuItem(
 )
 
 sealed class ProfileUiState {
-    object Loading : ProfileUiState()
+    data object Loading : ProfileUiState()
     data class Success(val user: UserProfile) : ProfileUiState()
     data class Error(val message: String) : ProfileUiState()
 }
 
 @Composable
 fun ProfileScreen(
-    onNavigate: (String) -> Unit = {}
+    onNavigate: (String) -> Unit = {},
+    viewModel: ProfileViewModel = hiltViewModel()
 ) {
     var showLogoutDialog by remember { mutableStateOf(false) }
-
-    var demoUser by remember {
-        mutableStateOf(
-            UserProfile(
-                id = "1",
-                name = "John",
-                email = "john@example.com",
-                avatarUrl = null
-            )
-        )
-    }
+    val uiState by viewModel.uiState.collectAsState()
 
     val menuItems = remember(onNavigate) {
         listOf(
@@ -141,9 +139,9 @@ fun ProfileScreen(
         LogoutConfirmationDialog(
             onDismiss = { showLogoutDialog = false },
             onConfirm = {
+                viewModel.logout()
                 showLogoutDialog = false
-                // Clear user session and navigate to login
-                onNavigate(Screen.Login.route)
+                onNavigate(Screen.Role.route)
             }
         )
     }
@@ -157,7 +155,7 @@ fun ProfileScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(bottom = 80.dp), // Space for bottom nav
+                .padding(bottom = 80.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(Modifier.height(24.dp))
@@ -171,17 +169,52 @@ fun ProfileScreen(
 
             Spacer(Modifier.height(32.dp))
 
-            ProfileAvatar(
-                avatarUrl = demoUser.avatarUrl,
-                name = demoUser.name
-            )
+            when (val state = uiState) {
+                is ProfileUiState.Loading -> {
+                    LoadingState()
+                }
 
-            Spacer(Modifier.height(12.dp))
+                is ProfileUiState.Success -> {
+                    AnimatedVisibility(
+                        visible = true,
+                        enter = fadeIn(),
+                        exit = fadeOut()
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            ProfileAvatar(
+                                avatarUrl = state.user.avatarUrl,
+                                name = state.user.name
+                            )
 
-            ProfileName(
-                name = demoUser.name,
-                onEdit = { onNavigate(Screen.EditProfileScreen.route) }
-            )
+                            Spacer(Modifier.height(12.dp))
+
+                            ProfileName(
+                                name = state.user.name,
+                                onEdit = { onNavigate(Screen.EditProfileScreen.route) }
+                            )
+
+                            state.user.email?.let { email ->
+                                Spacer(Modifier.height(4.dp))
+                                Text(
+                                    text = email,
+                                    fontSize = 14.sp,
+                                    color = Color.Gray
+                                )
+                            }
+                        }
+                    }
+                }
+
+                is ProfileUiState.Error -> {
+                    ErrorState(
+                        message = state.message,
+                        onRetry = { viewModel.loadUserProfile() }
+                    )
+                }
+            }
 
             Spacer(Modifier.height(32.dp))
 
@@ -207,6 +240,64 @@ fun ProfileScreen(
             )
 
             Spacer(Modifier.height(24.dp))
+        }
+    }
+}
+
+@Composable
+private fun LoadingState() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 48.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        CircularProgressIndicator(
+            modifier = Modifier.size(48.dp),
+            color = Color(0xFF7556FF)
+        )
+        Spacer(Modifier.height(16.dp))
+        Text(
+            text = "Loading profile...",
+            fontSize = 14.sp,
+            color = Color.Gray
+        )
+    }
+}
+
+@Composable
+private fun ErrorState(
+    message: String,
+    onRetry: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 48.dp, horizontal = 32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "Failed to load profile",
+            fontSize = 18.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = Color.Black
+        )
+        Spacer(Modifier.height(8.dp))
+        Text(
+            text = message,
+            fontSize = 14.sp,
+            color = Color.Gray,
+            textAlign = TextAlign.Center
+        )
+        Spacer(Modifier.height(16.dp))
+        Button(
+            onClick = onRetry,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFF7556FF)
+            ),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Text("Retry", color = Color.White)
         }
     }
 }
@@ -316,7 +407,7 @@ private fun ProfileAvatar(
             .border(4.dp, Color.White, CircleShape),
         contentAlignment = Alignment.Center
     ) {
-        if (avatarUrl != null) {
+        if (!avatarUrl.isNullOrEmpty()) {
             AsyncImage(
                 model = avatarUrl,
                 contentDescription = "Profile Avatar",
@@ -324,12 +415,22 @@ private fun ProfileAvatar(
                 contentScale = ContentScale.Crop
             )
         } else {
-            Icon(
-                imageVector = Icons.Default.Person,
-                contentDescription = "Default Avatar",
-                tint = Color(0xFF2E7D32),
-                modifier = Modifier.size(60.dp)
-            )
+            // Display first letter of name or default icon
+            if (name.isNotEmpty()) {
+                Text(
+                    text = name.first().uppercase(),
+                    fontSize = 48.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF2E7D32)
+                )
+            } else {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = "Default Avatar",
+                    tint = Color(0xFF2E7D32),
+                    modifier = Modifier.size(60.dp)
+                )
+            }
         }
     }
 }

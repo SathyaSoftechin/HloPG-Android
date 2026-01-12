@@ -1,6 +1,7 @@
 package com.hlopg.app
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Box
@@ -12,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.hlopg.BuildConfig
 import com.hlopg.presentation.admin.components.OwnerBottomNavBar
 import com.hlopg.presentation.ui.theme.HloPGTheme
 import com.hlopg.presentation.user.components.BottomNavBar
@@ -36,6 +38,9 @@ class MainActivity : ComponentActivity() {
 
                 val isOwner = sessionManager.isOwner()
                 val isUser = sessionManager.isUser()
+
+                Log.d("BASE_URL_CHECK", "BASE_URL = '${BuildConfig.BASE_URL}'")
+
 
                 // User bottom nav routes
                 val userBottomNavRoutes = listOf(

@@ -56,7 +56,9 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -112,7 +114,11 @@ fun RoomManagementScreen(
 
     val roomsState by viewModel.roomsState.collectAsState()
     val statistics by viewModel.statisticsState.collectAsState()
-    val floors = viewModel.getAllFloors()
+
+    // Use derivedStateOf to prevent recalculation on every recomposition
+    val floors by remember {
+        derivedStateOf { viewModel.getAllFloors() }
+    }
 
     var searchQuery by remember { mutableStateOf("") }
     var selectedFilter by remember { mutableStateOf(RoomFilter.ALL) }
@@ -202,7 +208,7 @@ fun RoomManagementScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             // Search Bar
-            item {
+            item(key = "search_bar") {
                 SearchBar(
                     query = searchQuery,
                     onQueryChange = { searchQuery = it }
@@ -211,14 +217,14 @@ fun RoomManagementScreen(
 
             // Statistics Card
             if (showStatistics) {
-                item {
+                item(key = "statistics") {
                     StatisticsCard(statistics = statistics)
                 }
             }
 
             // Bulk Actions
             if (showBulkActions) {
-                item {
+                item(key = "bulk_actions") {
                     BulkActionsCard(
                         onOccupyAll = {
                             viewModel.occupyAllBeds()
@@ -243,19 +249,27 @@ fun RoomManagementScreen(
             }
 
             // Instructions Card
-            item {
+            item(key = "instructions") {
                 InstructionCard()
             }
 
             // Legend
-            item {
+            item(key = "legend") {
                 EnhancedLegendRow()
             }
 
             // Floor sections with filtered rooms
-            items(floors) { floorKey ->
-                val floorRooms = viewModel.getRoomsForFloor(floorKey)
-                val filteredRooms = filterRooms(floorRooms, searchQuery, selectedFilter)
+            items(
+                items = floors,
+                key = { floorKey -> floorKey }
+            ) { floorKey ->
+                val floorRooms = remember(roomsState, floorKey) {
+                    viewModel.getRoomsForFloor(floorKey)
+                }
+
+                val filteredRooms = remember(floorRooms, searchQuery, selectedFilter) {
+                    filterRooms(floorRooms, searchQuery, selectedFilter)
+                }
 
                 if (filteredRooms.isNotEmpty()) {
                     FloorSection(
@@ -435,7 +449,7 @@ fun BulkActionsCard(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Text(
-                text = "⚡ Bulk Actions",
+                text = "Bulk Actions",
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black
@@ -489,7 +503,7 @@ fun InstructionCard() {
         )
     ) {
         Text(
-            text = "💡 Use +/- buttons to adjust bed capacity. Tap on bed icons to toggle occupancy status (Available ↔ Occupied). Use room actions for quick operations.",
+            text = "Use +/- buttons to adjust bed capacity. Tap on bed icons to toggle occupancy status (Available ↔ Occupied). Use room actions for quick operations.",
             modifier = Modifier.padding(12.dp),
             fontSize = 13.sp,
             color = Color.Black,
@@ -513,19 +527,18 @@ fun EnhancedLegendRow() {
                 .padding(12.dp),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            LegendItem(color = BedColors.Available, label = "Available", icon = "🛏️")
-            LegendItem(color = BedColors.Occupied, label = "Occupied", icon = "🛏️")
+            LegendItem(color = BedColors.Available, label = "Available")
+            LegendItem(color = BedColors.Occupied, label = "Occupied")
         }
     }
 }
 
 @Composable
-fun LegendItem(color: Color, label: String, icon: String) {
+fun LegendItem(color: Color, label: String) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp)
     ) {
-        Text(text = icon, fontSize = 16.sp)
         Box(
             modifier = Modifier
                 .size(12.dp)
@@ -555,6 +568,12 @@ fun FloorSection(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         // Floor Header
+        val floorStats = remember(rooms) {
+            val total = rooms.sumOf { it.beds.size }
+            val occupied = rooms.sumOf { it.occupiedBeds }
+            "$occupied/$total beds"
+        }
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -573,12 +592,6 @@ fun FloorSection(
                 color = Color.White
             )
 
-            val floorStats = rooms.let { roomsList ->
-                val total = roomsList.sumOf { it.beds.size }
-                val occupied = roomsList.sumOf { it.occupiedBeds }
-                "$occupied/$total beds"
-            }
-
             Text(
                 text = floorStats,
                 fontSize = 12.sp,
@@ -587,7 +600,7 @@ fun FloorSection(
             )
         }
 
-        // Rooms grid
+        // Rooms grid - using Column instead of nested LazyColumn
         Column(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
@@ -597,17 +610,20 @@ fun FloorSection(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     roomPair.forEach { room ->
-                        EnhancedRoomCard(
-                            room = room,
-                            onIncreaseBeds = { onIncreaseBeds(room.roomNumber) },
-                            onDecreaseBeds = { onDecreaseBeds(room.roomNumber) },
-                            onBedClick = { bedNumber ->
-                                onBedClick(room.roomNumber, bedNumber)
-                            },
-                            onOccupyAll = { onOccupyAll(room.roomNumber) },
-                            onFreeAll = { onFreeAll(room.roomNumber) },
-                            modifier = Modifier.weight(1f)
-                        )
+                        // Use key to help Compose track individual rooms
+                        key(room.roomNumber) {
+                            EnhancedRoomCard(
+                                room = room,
+                                onIncreaseBeds = { onIncreaseBeds(room.roomNumber) },
+                                onDecreaseBeds = { onDecreaseBeds(room.roomNumber) },
+                                onBedClick = { bedNumber ->
+                                    onBedClick(room.roomNumber, bedNumber)
+                                },
+                                onOccupyAll = { onOccupyAll(room.roomNumber) },
+                                onFreeAll = { onFreeAll(room.roomNumber) },
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
                     }
                     // Fill remaining space if odd number of rooms
                     if (roomPair.size == 1) {
@@ -744,16 +760,18 @@ fun EnhancedRoomCard(
                         verticalArrangement = Arrangement.spacedBy(6.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        room.beds.chunked(4).forEach { bedRow ->
+                        room.beds.chunked(3).forEach { bedRow ->
                             Row(
                                 horizontalArrangement = Arrangement.spacedBy(6.dp)
                             ) {
                                 bedRow.forEach { bed ->
-                                    BedIconButton(
-                                        bedNumber = bed.bedNumber,
-                                        isOccupied = bed.isOccupied,
-                                        onClick = { onBedClick(bed.bedNumber) }
-                                    )
+                                    key(bed.bedNumber) {
+                                        BedIconButton(
+                                            bedNumber = bed.bedNumber,
+                                            isOccupied = bed.isOccupied,
+                                            onClick = { onBedClick(bed.bedNumber) }
+                                        )
+                                    }
                                 }
                             }
                         }

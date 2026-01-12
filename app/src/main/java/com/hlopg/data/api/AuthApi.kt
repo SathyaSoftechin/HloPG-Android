@@ -4,6 +4,7 @@ import com.hlopg.data.model.ApiResponse
 import com.hlopg.data.model.LoginRequest
 import com.hlopg.data.model.OtpRequest
 import com.hlopg.data.model.Owner
+import com.hlopg.data.model.OwnerLoginResponse
 import com.hlopg.data.model.RegisterOwnerRequest
 import com.hlopg.data.model.RegisterRequest
 import com.hlopg.data.model.ResendOtpRequest
@@ -59,7 +60,8 @@ interface AuthApi {
     @POST("api/auth/loginowner")
     suspend fun loginOwner(
         @Body request: LoginRequest
-    ): Response<ApiResponse<Owner>>
+    ): Response<OwnerLoginResponse>
+
 
     @GET("api/auth/owner")
     suspend fun getOwner(

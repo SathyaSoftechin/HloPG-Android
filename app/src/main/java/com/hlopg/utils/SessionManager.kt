@@ -29,7 +29,7 @@ class SessionManager @Inject constructor(
         userId: String,  // ← Changed from Any to String
         userName: String,
         userEmail: String,
-        userPhone: String,
+        userPhone: String?,
         userType: String,
         authToken: String
     ) {

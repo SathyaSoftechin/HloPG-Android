@@ -2,6 +2,7 @@ package com.hlopg.presentation.admin.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.hlopg.utils.SessionManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -23,6 +24,7 @@ data class EditOwnerProfileUiState(
 @HiltViewModel
 class EditOwnerProfileViewModel @Inject constructor(
     // inject your repo if you want to persist changes
+    private val sessionManager: SessionManager
 ) : ViewModel() {
 
     // backing state
@@ -37,13 +39,15 @@ class EditOwnerProfileViewModel @Inject constructor(
     private fun loadLocalOwnerProfile() {
         // Replace with repository/data store load
         viewModelScope.launch {
-            _uiState.value = EditOwnerProfileUiState(
-                avatarUrl = null, // or some URL
-                username = "Owner",
-                email = "admin@hlopg.com",
-                gender = "Male",
-                password = "admin123"
-            )
+            _uiState.update {
+                it.copy(
+                    avatarUrl = null,
+                    username = sessionManager.getUserName(),
+                    email = sessionManager.getUserEmail(),
+                    gender = "Male",
+                    password = null
+                )
+            }
         }
     }
 
