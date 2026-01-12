@@ -9,8 +9,6 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitInstance {
 
-    //private const val BASE_URL = "https://hlopgbackend.in/"//BuildConfig.BASE_URL  // base URL
-
     val BASE_URL = BuildConfig.BASE_URL  // base URL
 
 
