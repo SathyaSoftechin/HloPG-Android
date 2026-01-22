@@ -22,6 +22,7 @@ object AppModule {
         return SessionManager(context)
     }
 
+
     // Add other app-level dependencies here
     // For example: API clients, databases, repositories, etc.
 }

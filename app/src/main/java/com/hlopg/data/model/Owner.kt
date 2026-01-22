@@ -1,5 +1,7 @@
 package com.hlopg.data.model
 
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import com.google.gson.annotations.SerializedName
 
 
@@ -34,4 +36,23 @@ data class OwnerPg(
     val city: String,
     val area: String,
     val ownerId: Int
+)
+
+// Data Models for OwnerProfileScreen
+data class OwnerProfileData(
+    val id: String,
+    val name: String,
+    val email: String? = null,
+    val avatarUrl: String? = null,
+    val phone: String? = null
+)
+
+data class OwnerMenuItem(
+    val id: String,
+    val icon: ImageVector,
+    val title: String,
+    val iconTint: Color = Color(0xFF7556FF),
+    val showArrow: Boolean = true,
+    val enabled: Boolean = true,
+    val onClick: () -> Unit = {}
 )

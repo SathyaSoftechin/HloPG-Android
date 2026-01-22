@@ -10,8 +10,6 @@ import com.hlopg.data.model.User
 import com.hlopg.domain.repository.Resource
 import com.hlopg.utils.TokenManager
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import retrofit2.Response
 import javax.inject.Inject
@@ -63,24 +61,6 @@ class AuthRepository @Inject constructor(
         }
     }
 
-    suspend fun getUser(): Resource<User> =
-        withContext(Dispatchers.IO) {
-            val token = tokenManager.tokenFlow.first()
-                ?: return@withContext Resource.Error("No authentication token found")
-
-            safeApiCall {
-                api.getUser("Bearer $token")
-            }
-        }
-
-    // ================= TOKEN =================
-
-    suspend fun saveToken(token: String) = tokenManager.saveToken(token)
-    suspend fun clearToken() = tokenManager.clearToken()
-    fun getTokenFlow(): Flow<String?> = tokenManager.tokenFlow
-
-    suspend fun isUserLoggedIn(): Boolean =
-        !tokenManager.tokenFlow.first().isNullOrEmpty()
 
     // ================= SAFE API CALL =================
 

@@ -49,7 +49,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -59,27 +58,10 @@ import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.hlopg.app.Screen
+import com.hlopg.data.model.OwnerMenuItem
 import com.hlopg.presentation.admin.viewmodel.OwnerProfileViewModel
 import com.hlopg.presentation.admin.viewmodel.ProfileNavEvent
 
-// Data Models for OwnerProfileScreen
-data class OwnerProfileData(
-    val id: String,
-    val name: String,
-    val email: String? = null,
-    val avatarUrl: String? = null,
-    val phone: String? = null
-)
-
-data class OwnerMenuItem(
-    val id: String,
-    val icon: ImageVector,
-    val title: String,
-    val iconTint: Color = Color(0xFF7556FF),
-    val showArrow: Boolean = true,
-    val enabled: Boolean = true,
-    val onClick: () -> Unit = {}
-)
 
 @Composable
 fun OwnerProfileScreen(

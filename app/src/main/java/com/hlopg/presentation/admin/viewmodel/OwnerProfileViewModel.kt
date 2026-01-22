@@ -14,10 +14,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-// ==================== DATA MODELS ====================
-
-
-
 // ==================== UI STATE ====================
 
 data class OwnerProfileViewState(
